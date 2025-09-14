@@ -4,6 +4,9 @@ import autoFormatResponse from "@/lib/auto-format"
 
 
 
+// Canonical personal name for static responses
+const CANONICAL_NAME = 'ABHINAV TIWARY'
+
 // Simple in-memory storage for demo purposes
 // In production, you'd use a proper database
 const conversations = new Map()
@@ -212,7 +215,7 @@ function maybeStaticCreatorReply(text) {
   ]
 
   if (patterns.some((re) => re.test(t))) {
-    return "I was built by Abhinav Tiwary."
+    return `I was built by ${CANONICAL_NAME}.`
   }
   return ""
 }
@@ -256,6 +259,7 @@ function maybeAbhinavBioReply(text) {
     /\bwho\s+is\s+abhinavb?\s+tiwar[yi]\b/,
     /\btell\s+me\s+about\s+abhinavb?\s+tiwar[yi]\b/,
     /\babhinavb?\s+tiwar[yi]\s+(bio|details|profile|info)\b/,
+    /\bwho\s+is\s+abh?inav\s+tiwary\b/,
   ]
 
   if (!patterns.some((re) => re.test(t))) return ""
@@ -282,7 +286,7 @@ function maybeAbhinavBioReply(text) {
 
   // Respond as simple Markdown for nice rendering in chat
   const lines = [
-    `**Abhinavb Tiwary**`,
+    `**${CANONICAL_NAME}**`,
     `- Pronouns: ${abhinav.pronouns}`,
     `- Location: ${abhinav.location}`,
     `- Current Focus: ${abhinav.currentFocus}`,
