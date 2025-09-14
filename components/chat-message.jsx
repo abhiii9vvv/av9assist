@@ -218,7 +218,8 @@ export function ChatMessage({
       <div
         className={cn(
           "flex flex-col gap-2 min-w-0 flex-1",
-          "max-w-[85%] xs:max-w-[80%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%]",
+          // Widen bubbles on all breakpoints
+          "max-w-[96%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[86%] lg:max-w-[82%] xl:max-w-[78%]",
           isUser ? "items-end" : "items-start",
         )}
       >
@@ -262,38 +263,38 @@ export function ChatMessage({
               rehypePlugins={[rehypeHighlight]}
               components={{
                 h1: ({ node, ...props }) => (
-                  <h1 className="text-2xl font-bold mt-6 mb-4 pb-3 border-b-2 border-primary/30 bg-gradient-to-r from-primary/8 to-transparent -mx-1 px-3 rounded-lg break-words max-w-prose text-foreground/95" {...props} />
+                  <h1 className="text-2xl font-bold mt-6 mb-4 pb-3 border-b-2 border-primary/30 bg-gradient-to-r from-primary/8 to-transparent -mx-1 px-3 rounded-lg break-words max-w-none text-foreground/95" {...props} />
                 ),
                 h2: ({ node, ...props }) => (
-                  <h2 className="text-xl font-semibold mt-5 mb-3 text-primary/90 break-words max-w-prose flex items-center gap-2" {...props}>
+                  <h2 className="text-xl font-semibold mt-5 mb-3 text-primary/90 break-words max-w-none flex items-center gap-2" {...props}>
                     <div className="w-1 h-6 bg-primary/40 rounded-full" />
                     {props.children}
                   </h2>
                 ),
                 h3: ({ node, ...props }) => (
-                  <h3 className="text-lg font-medium mt-4 mb-2 text-primary/80 break-words max-w-prose" {...props} />
+                  <h3 className="text-lg font-medium mt-4 mb-2 text-primary/80 break-words max-w-none" {...props} />
                 ),
                 p: ({ node, ...props }) => (
-                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-prose text-foreground/95 text-base" {...props} />
+                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-none text-foreground/95 text-base" {...props} />
                 ),
                 hr: (props) => <hr className="my-6 border-0 h-px bg-gradient-to-r from-transparent via-border/60 to-transparent" {...props} />,
                 a: ({ node, ...props }) => (
                   <a
-                    className="text-primary hover:text-primary/80 underline underline-offset-4 hover:underline-offset-2 decoration-2 transition-all duration-300 break-words break-all max-w-prose font-medium hover:bg-primary/5 px-1 py-0.5 rounded"
+                    className="text-primary hover:text-primary/80 underline underline-offset-4 hover:underline-offset-2 decoration-2 transition-all duration-300 break-words break-all max-w-none font-medium hover:bg-primary/5 px-1 py-0.5 rounded"
                     target="_blank"
                     rel="noreferrer"
                     {...props}
                   />
                 ),
                 ul: ({ node, ordered, ...props }) => (
-                  <ul className="list-disc pl-6 my-4 space-y-2 max-w-prose marker:text-primary/70 marker:text-lg" {...props} />
+                  <ul className="list-disc pl-6 my-4 space-y-2 max-w-none marker:text-primary/70 marker:text-lg" {...props} />
                 ),
                 ol: ({ node, ordered, ...props }) => (
-                  <ol className="list-decimal pl-6 my-4 space-y-2 max-w-prose marker:text-primary/70 marker:font-semibold" {...props} />
+                  <ol className="list-decimal pl-6 my-4 space-y-2 max-w-none marker:text-primary/70 marker:font-semibold" {...props} />
                 ),
-                li: ({ node, checked, ...props }) => <li className="leading-relaxed break-words text-foreground/95 pl-1" {...props} />,
+                li: ({ node, checked, ...props }) => <li className="leading-relaxed break-words text-foreground/95 pl-1 max-w-none" {...props} />,
                 blockquote: ({ node, ...props }) => (
-                  <blockquote className="border-l-4 border-primary/50 pl-5 my-5 py-3 bg-gradient-to-r from-primary/5 to-primary/3 rounded-r-lg italic text-foreground/85 max-w-prose relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary/20 before:rounded-full" {...props} />
+                  <blockquote className="border-l-4 border-primary/50 pl-5 my-5 py-3 bg-gradient-to-r from-primary/5 to-primary/3 rounded-r-lg italic text-foreground/85 max-w-none relative before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary/20 before:rounded-full" {...props} />
                 ),
                 img: ({ node, alt, ...props }) => (
                   <div className="my-4 group/image">

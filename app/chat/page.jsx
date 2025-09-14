@@ -793,7 +793,7 @@ export default function ChatPage() {
     <div className="min-h-[100dvh] bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <header className="border-b bg-card/70 backdrop-blur-sm sticky top-0 z-10 shadow-sm shrink-0">
-        <div className="container mx-auto px-1 sm:px-2 py-2 sm:py-3 flex items-center justify-between max-w-4xl">
+        <div className="container mx-auto px-1 sm:px-2 py-2 sm:py-3 flex items-center justify-between max-w-6xl">
           <div className="flex items-center gap-1 sm:gap-2 min-w-0">
             <Button
               variant="ghost"
@@ -860,7 +860,7 @@ export default function ChatPage() {
 
       {/* Error Alert */}
       {error && (
-        <div className="container mx-auto px-3 sm:px-4 pt-3 sm:pt-4 max-w-4xl">
+  <div className="container mx-auto px-3 sm:px-4 pt-3 sm:pt-4 max-w-6xl">
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
@@ -875,7 +875,7 @@ export default function ChatPage() {
 
       {/* Chat Messages Area */}
       <main className="flex-1 min-h-0 overflow-hidden">
-        <div className="h-full container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-4xl">
+  <div className="h-full container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-6xl">
           <div id="chat-scroll-area" className="h-full space-y-2 sm:space-y-3 pb-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent">
             <div className="space-y-2 sm:space-y-3">
               <StaggerContainer>
@@ -884,7 +884,7 @@ export default function ChatPage() {
                     return (
                       <StaggerItem key={message.id}>
                         <FadeTransition className="flex gap-1 sm:gap-2 flex-row-reverse px-0 sm:px-0">
-                          <div className="flex flex-col gap-2 min-w-0 max-w-[95%] sm:max-w-[90%] md:max-w-[85%] lg:max-w-[75%] items-end">{/* Continue with existing structure */}
+                          <div className="flex flex-col gap-2 min-w-0 items-end max-w-[96%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[86%] lg:max-w-[82%] xl:max-w-[78%]">{/* Continue with existing structure */}
                             <ScaleTransition>
                               <Card className="px-3 sm:px-5 py-3 sm:py-4 border-0 shadow-xl bg-primary text-primary-foreground rounded-2xl rounded-br-md min-w-0 w-fit">
                                 <Textarea
@@ -974,7 +974,7 @@ export default function ChatPage() {
 
       {/* Input Area */}
       <footer className="border-t bg-card/70 backdrop-blur-sm sticky bottom-0 pb-safe shadow-inner shrink-0">
-        <div className="container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-4xl">
+  <div className="container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-6xl">
           <FadeTransition>
             <Card className="p-1 sm:p-2 bg-background/70 backdrop-blur-sm border soft-divider shadow-sm transition-all duration-300 hover:shadow-md">
               <div className="flex gap-1 sm:gap-2 items-end">
