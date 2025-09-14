@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
@@ -27,6 +28,14 @@ export default function LandingPage() {
   const [name, setName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+
+  // Prefetch the chat route so the first navigation is instant
+  useEffect(() => {
+    try {
+      // App Router supports router.prefetch
+      router.prefetch?.("/chat")
+    } catch {}
+  }, [router])
 
   const handleStartChat = async () => {
     if (!name.trim()) return
@@ -129,12 +138,14 @@ export default function LandingPage() {
 
                     <ScaleTransition>
                       <Button
+                        asChild
                         variant="ghost"
-                        onClick={handleSkipLogin}
                         className="w-full text-muted-foreground hover:text-foreground min-h-[44px]"
                         disabled={isLoading}
                       >
-                        Skip for now
+                        <Link href="/chat" prefetch>
+                          Skip for now
+                        </Link>
                       </Button>
                     </ScaleTransition>
                   </div>

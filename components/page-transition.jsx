@@ -1,6 +1,7 @@
 "use client"
 
 import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 
 const pageVariants = {
@@ -29,11 +30,18 @@ const pageTransition = {
 
 export function PageTransition({ children }) {
   const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    // Prevent an initial blank flash by mounting before animating
+    const t = setTimeout(() => setMounted(true), 0)
+    return () => clearTimeout(t)
+  }, [])
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <motion.div
-        key={pathname}
+        key={mounted ? pathname : 'initial'}
         initial="initial"
         animate="in"
         exit="out"
