@@ -16,6 +16,34 @@ export async function POST(request) {
       return NextResponse.json({ error: "Message is required and must be a string" }, { status: 400 })
     }
 
+    // Normalize message text
+    const rawText = String(body.message || "")
+    const lowerText = rawText.toLowerCase().trim()
+
+    // Moderation: simple banned words/phrases check (configurable via env BANNED_WORDS)
+    // Example: BANNED_WORDS=word1,word2,very bad phrase
+    const bannedFromEnv = (process.env.BANNED_WORDS || "").split(",").map((s) => s.trim()).filter(Boolean)
+    const defaultBanned = [
+      // add common sensitive words here as needed
+      // keep minimal and allow override via env for flexibility
+    ]
+    const bannedList = [...new Set([...defaultBanned, ...bannedFromEnv])]
+    if (bannedList.length > 0) {
+      const hit = bannedList.find((w) => lowerText.includes(w.toLowerCase()))
+      if (hit) {
+        return NextResponse.json({
+          message: {
+            id: generateMessageId(),
+            content: "Sorry, that message contains content we don't allow. Please rephrase.",
+            sender: "ai",
+            timestamp: new Date().toISOString(),
+          },
+          conversationId: body.conversationId || generateConversationId(),
+          moderated: true,
+        })
+      }
+    }
+
     // Generate conversation ID if not provided
     const conversationId = body.conversationId || generateConversationId()
 
@@ -58,6 +86,21 @@ export async function POST(request) {
         sender: "ai",
         timestamp: new Date().toISOString(),
       }
+    // Static reply: Who is Abhinavb Tiwary (user's details)
+    const staticAbhinavBio = maybeAbhinavBioReply(userMessage.content)
+    if (staticAbhinavBio) {
+      const aiMessage = {
+        id: generateMessageId(),
+        content: staticAbhinavBio, // return structured details as-is
+        sender: "ai",
+        timestamp: new Date().toISOString(),
+      }
+
+      updatedMessages.push(aiMessage)
+      conversations.set(conversationId, updatedMessages)
+
+      return NextResponse.json({ message: aiMessage, conversationId })
+    }
 
       updatedMessages.push(aiMessage)
       conversations.set(conversationId, updatedMessages)
@@ -181,6 +224,54 @@ function maybeStaticAbhinavReply(text) {
     return "Abhinav's girlfriend is Neha."
   }
   return ""
+}
+
+// Handle "who is abhinavb tiwary" and similar queries with provided details
+function maybeAbhinavBioReply(text) {
+  if (!text) return ""
+  const t = String(text).toLowerCase().trim()
+
+  // Match variants like: who is abhinavb tiwary / tell me about abhinavb tiwary / abhinavb tiwary details
+  const patterns = [
+    /who\s+is\s+abhinavb\s+tiwary/,
+    /tell\s+me\s+about\s+abhinavb\s+tiwary/,
+    /abhinavb\s+tiwary\s+(bio|details|profile|info)/,
+  ]
+
+  if (!patterns.some((re) => re.test(t))) return ""
+
+  // Provided details to return
+  const abhinav = {
+    pronouns: "he/him",
+    location: "India 🇮🇳",
+    currentFocus: "AI Integration & Full-Stack Development",
+    philosophy: "Simplicity is the ultimate sophistication",
+    currentlyLearning: [
+      "Advanced React Patterns",
+      "System Design",
+      "Cloud Architecture",
+    ],
+    askMeAbout: [
+      "Web Development",
+      "AI Integration",
+      "Data Structures",
+      "Problem Solving",
+    ],
+    funFact: "I debug with console.log() and I'm not ashamed! 😄",
+  }
+
+  // Respond as simple Markdown for nice rendering in chat
+  const lines = [
+    `**Abhinavb Tiwary**`,
+    `- Pronouns: ${abhinav.pronouns}`,
+    `- Location: ${abhinav.location}`,
+    `- Current Focus: ${abhinav.currentFocus}`,
+    `- Philosophy: ${abhinav.philosophy}`,
+    `- Currently Learning: ${abhinav.currentlyLearning.join(", ")}`,
+    `- Ask Me About: ${abhinav.askMeAbout.join(", ")}`,
+    `- Fun Fact: ${abhinav.funFact}`,
+  ]
+  return lines.join("\n")
 }
 
 // Heuristic code-intent detector
