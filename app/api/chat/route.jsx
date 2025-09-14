@@ -16,20 +16,17 @@ export async function POST(request) {
       return NextResponse.json({ error: "Message is required and must be a string" }, { status: 400 })
     }
 
-    // Normalize message text
+    // Moderation: configurable banned words with Hindi support and regex patterns
     const rawText = String(body.message || "")
-    const lowerText = rawText.toLowerCase().trim()
+    const normalized = normalizeForMatch(rawText)
 
-    // Moderation: simple banned words/phrases check (configurable via env BANNED_WORDS)
-    // Example: BANNED_WORDS=word1,word2,very bad phrase
-    const bannedFromEnv = (process.env.BANNED_WORDS || "").split(",").map((s) => s.trim()).filter(Boolean)
-    const defaultBanned = [
-      // add common sensitive words here as needed
-      // keep minimal and allow override via env for flexibility
-    ]
-    const bannedList = [...new Set([...defaultBanned, ...bannedFromEnv])]
+    const bannedList = parseBannedList([
+      process.env.BANNED_WORDS,
+      process.env.BANNED_WORDS_HI,
+    ])
+
     if (bannedList.length > 0) {
-      const hit = bannedList.find((w) => lowerText.includes(w.toLowerCase()))
+      const hit = findBannedHit(normalized, bannedList)
       if (hit) {
         return NextResponse.json({
           message: {
@@ -370,4 +367,52 @@ async function generateAIResponseFastFirst(userMessage, userId, contextFromRoute
     }
     return "I'm sorry, I'm having some technical difficulties right now. Please try again in a moment."
   }
+}
+
+// ------- Moderation helpers -------
+function normalizeForMatch(text) {
+  try {
+    // Lowercase, normalize unicode, strip diacritics, collapse whitespace
+    return String(text || "")
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '') // diacritics
+      .replace(/[\p{P}\p{S}]+/gu, ' ') // punctuation/symbols
+      .replace(/\s+/g, ' ') // collapse spaces
+      .trim()
+  } catch {
+    return String(text || "").toLowerCase().trim()
+  }
+}
+
+function parseBannedList(envValues = []) {
+  const items = []
+  for (const val of envValues) {
+    if (!val) continue
+    for (const raw of String(val).split(',').map((s) => s.trim()).filter(Boolean)) {
+      // Allow regex via prefix: re:pattern
+      if (raw.startsWith('re:')) {
+        const pattern = raw.slice(3)
+        try {
+          items.push({ type: 're', re: new RegExp(pattern, 'i') })
+        } catch {
+          // ignore invalid regex entries
+        }
+      } else {
+        items.push({ type: 'str', s: normalizeForMatch(raw) })
+      }
+    }
+  }
+  return items
+}
+
+function findBannedHit(normalizedText, bannedItems) {
+  for (const item of bannedItems) {
+    if (item.type === 'str') {
+      if (normalizedText.includes(item.s)) return item.s
+    } else if (item.type === 're') {
+      if (item.re.test(normalizedText)) return item.re.source
+    }
+  }
+  return ''
 }
