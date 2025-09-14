@@ -16,12 +16,6 @@ export const metadata = {
   generator: "v0.app",
   keywords: ["AI", "assistant", "chat", "modern", "fast"],
   authors: [{ name: "av9Assist" }],
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",
@@ -33,6 +27,13 @@ export const metadata = {
     description: "Modern AI chat interface with sleek design and smooth animations",
     type: "website",
   },
+}
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({

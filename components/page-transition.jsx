@@ -1,57 +1,20 @@
 "use client"
 
-import { motion, AnimatePresence } from "framer-motion"
-import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
 import { usePathname } from "next/navigation"
-
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-    scale: 0.98
-  },
-  in: {
-    opacity: 1,
-    y: 0,
-    scale: 1
-  },
-  out: {
-    opacity: 0,
-    y: -20,
-    scale: 0.98
-  }
-}
-
-const pageTransition = {
-  type: "tween",
-  ease: "anticipate",
-  duration: 0.4
-}
 
 export function PageTransition({ children }) {
   const pathname = usePathname()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    // Prevent an initial blank flash by mounting before animating
-    const t = setTimeout(() => setMounted(true), 0)
-    return () => clearTimeout(t)
-  }, [])
-
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={mounted ? pathname : 'initial'}
-        initial="initial"
-        animate="in"
-        exit="out"
-        variants={pageVariants}
-        transition={pageTransition}
-        className="w-full"
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      key={pathname}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "tween", ease: "easeOut", duration: 0.2 }}
+      className="w-full"
+    >
+      {children}
+    </motion.div>
   )
 }
 
@@ -63,18 +26,13 @@ export function StaggerContainer({ children, className = "", delay = 0.1 }) {
       opacity: 1,
       transition: {
         staggerChildren: delay,
-        delayChildren: 0.1
-      }
-    }
+        delayChildren: 0.1,
+      },
+    },
   }
 
   return (
-    <motion.div
-      className={className}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <motion.div className={className} variants={containerVariants} initial="hidden" animate="visible">
       {children}
     </motion.div>
   )

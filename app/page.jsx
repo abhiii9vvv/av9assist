@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
 import { MessageCircle, Sparkles, Zap, Shield, ArrowRight } from "lucide-react"
 import { useRenderTime } from "@/components/performance-monitor"
+import { LoadingSpinner } from "@/components/loading-spinner"
 
 // Dynamic import for ThemeToggle since it's not critical for initial render
 const DynamicThemeToggle = dynamic(
@@ -49,7 +50,10 @@ export default function LandingPage() {
     router.push("/chat")
   }
 
-  const handleSkipLogin = () => {
+  const handleSkipLogin = async () => {
+    setIsLoading(true)
+    // small delay to ensure overlay paints before navigation
+    await new Promise((r) => setTimeout(r, 150))
     router.push("/chat")
   }
 
@@ -138,14 +142,12 @@ export default function LandingPage() {
 
                     <ScaleTransition>
                       <Button
-                        asChild
+                        onClick={handleSkipLogin}
                         variant="ghost"
                         className="w-full text-muted-foreground hover:text-foreground min-h-[44px]"
                         disabled={isLoading}
                       >
-                        <Link href="/chat" prefetch>
-                          Skip for now
-                        </Link>
+                        Skip for now
                       </Button>
                     </ScaleTransition>
                   </div>
@@ -202,6 +204,14 @@ export default function LandingPage() {
           </StaggerItem>
         </StaggerContainer>
       </main>
+      {isLoading && (
+        <div className="fixed inset-0 z-[200] bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <LoadingSpinner size="xl" />
+            <p className="text-sm text-muted-foreground">Entering chat…</p>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
