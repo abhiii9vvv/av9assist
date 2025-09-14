@@ -194,36 +194,25 @@ export function ChatMessage({
         isUser ? "flex-row-reverse" : "flex-row",
       )}
     >
-      {/* Enhanced Avatar */}
-      <div className="relative flex-shrink-0">
-        <Avatar className={cn(
-          "w-8 h-8 sm:w-9 sm:h-9 transition-all duration-300 ring-2",
-          isUser
-            ? "ring-primary/30 hover:ring-primary/50"
-            : "ring-secondary/30 hover:ring-secondary/50",
-          "shadow-lg hover:shadow-xl"
-        )}>
-          <AvatarFallback
-            className={cn(
-              "text-sm font-semibold transition-all duration-300",
-              isUser
-                ? "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70"
-                : "bg-gradient-to-br from-secondary to-secondary/80 text-secondary-foreground hover:from-secondary/90 hover:to-secondary/70",
-            )}
-          >
-            {isUser ? (
+      {/* Avatar shown only for user messages (AI bubble has header above instead) */}
+      {isUser && (
+        <div className="relative flex-shrink-0">
+          <Avatar className={cn(
+            "w-8 h-8 sm:w-9 sm:h-9 transition-all duration-300 ring-2",
+            "ring-primary/30 hover:ring-primary/50",
+            "shadow-lg hover:shadow-xl"
+          )}>
+            <AvatarFallback
+              className={cn(
+                "text-sm font-semibold transition-all duration-300",
+                "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70",
+              )}
+            >
               <User className="w-4 h-4 sm:w-5 sm:h-5" />
-            ) : (
-              <Bot className="w-4 h-4 sm:w-5 sm:h-5" />
-            )}
-          </AvatarFallback>
-        </Avatar>
-
-        {/* Status indicator */}
-        {isTyping && !isUser && (
-          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-background animate-pulse" />
-        )}
-      </div>
+            </AvatarFallback>
+          </Avatar>
+        </div>
+      )}
 
       {/* Message Content Container */}
       <div
@@ -233,6 +222,14 @@ export function ChatMessage({
           isUser ? "items-end" : "items-start",
         )}
       >
+        {/* AI header (icon + name) above the bubble */}
+        {!isUser && (
+          <div className="flex items-center gap-2 mb-1 text-xs text-muted-foreground pl-0.5">
+            <Bot className="w-3.5 h-3.5" />
+            <span>av9Assist</span>
+          </div>
+        )}
+
         <Card
           className={cn(
             "relative overflow-hidden transition-all duration-300",
