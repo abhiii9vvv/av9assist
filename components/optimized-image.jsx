@@ -93,7 +93,7 @@ export function Avatar({ src, alt, size = 'md', fallback, className = '' }) {
 export function Logo({ className = '', priority = true }) {
   return (
     <OptimizedImage
-      src="/placeholder-logo.svg"
+      src="/favicon.svg"
       alt="av9Assist Logo"
       width={32}
       height={32}

@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
-import { MessageCircle, Sparkles, Zap, Shield, ArrowRight } from "lucide-react"
+import { Sparkles, Zap, Shield, ArrowRight } from "lucide-react"
 import { useRenderTime } from "@/components/performance-monitor"
 import { LoadingSpinner } from "@/components/loading-spinner"
+import { Logo } from "@/components/optimized-image"
 
 // Dynamic import for ThemeToggle since it's not critical for initial render
 const DynamicThemeToggle = dynamic(
@@ -62,9 +63,7 @@ export default function LandingPage() {
       {/* Header */}
       <header className="flex justify-between items-center p-3 sm:p-4 lg:p-6 sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 sm:w-8 h-7 sm:h-8 bg-primary rounded-lg flex items-center justify-center shrink-0">
-            <MessageCircle className="w-4 sm:w-5 h-4 sm:h-5 text-primary-foreground" />
-          </div>
+          <Logo className="shrink-0" />
           <span className="text-lg sm:text-xl font-bold text-foreground truncate">av9Assist</span>
         </div>
         <div className="shrink-0">
