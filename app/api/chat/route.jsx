@@ -20,9 +20,12 @@ export async function POST(request) {
     const rawText = String(body.message || "")
     const normalized = normalizeForMatch(rawText)
 
+    // Include ENV-configured lists plus built-in defaults for Hindi slurs
+    const defaults = 'randi,lund,chut,re:\\brandi\\w*,re:\\blund\\w*,re:\\bchut\\w*'
     const bannedList = parseBannedList([
       process.env.BANNED_WORDS,
       process.env.BANNED_WORDS_HI,
+      defaults,
     ])
 
     if (bannedList.length > 0) {
@@ -228,11 +231,12 @@ function maybeAbhinavBioReply(text) {
   if (!text) return ""
   const t = String(text).toLowerCase().trim()
 
-  // Match variants like: who is abhinavb tiwary / tell me about abhinavb tiwary / abhinavb tiwary details
+  // Match variants like: who is abhinav tiwary / who is abhinavb tiwary / tell me about ... / ... bio/details
+  // Allow optional 'b' and minor spelling variants for 'tiwary' vs 'tiwari'
   const patterns = [
-    /who\s+is\s+abhinavb\s+tiwary/,
-    /tell\s+me\s+about\s+abhinavb\s+tiwary/,
-    /abhinavb\s+tiwary\s+(bio|details|profile|info)/,
+    /\bwho\s+is\s+abhinavb?\s+tiwar[yi]\b/,
+    /\btell\s+me\s+about\s+abhinavb?\s+tiwar[yi]\b/,
+    /\babhinavb?\s+tiwar[yi]\s+(bio|details|profile|info)\b/,
   ]
 
   if (!patterns.some((re) => re.test(t))) return ""
