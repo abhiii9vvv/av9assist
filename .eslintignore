@@ -1,0 +1,12 @@
+# Dependencies and build outputs
+node_modules/
+.next/
+
+# Type definition stubs
+*.d.ts
+
+# Temporarily ignore UI components that still contain TS-like syntax
+components/ui/**
+
+# Experimental provider using nonstandard syntax
+lib/ai-providers.jsx
