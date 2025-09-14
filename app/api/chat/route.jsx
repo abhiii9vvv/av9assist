@@ -44,10 +44,10 @@ export async function POST(request) {
       }
     }
 
-    // Generate conversation ID if not provided
-    const conversationId = body.conversationId || generateConversationId()
+  // Generate conversation ID if not provided
+  const conversationId = body.conversationId || generateConversationId()
 
-    // Get existing conversation or create new one
+  // Get existing conversation or create new one
     const existingMessages = conversations.get(conversationId) || []
 
     // Create user message
@@ -60,6 +60,25 @@ export async function POST(request) {
 
     // Add user message to conversation
     const updatedMessages = [...existingMessages, userMessage]
+
+    // Static reply: Who is Abhinav (your profile) — prioritize this before other static handlers
+    {
+      const normalized = normalizeForMatch(userMessage.content)
+      const simpleHit = normalized.includes('abhinav tiwar') // matches tiwari/tiwary after normalization
+      const regexHit = maybeAbhinavBioReply(userMessage.content)
+      if (simpleHit || regexHit) {
+        const content = regexHit || maybeAbhinavBioReply('who is abhinav tiwary')
+        const aiMessage = {
+          id: generateMessageId(),
+          content,
+          sender: "ai",
+          timestamp: new Date().toISOString(),
+        }
+        updatedMessages.push(aiMessage)
+        conversations.set(conversationId, updatedMessages)
+        return NextResponse.json({ message: aiMessage, conversationId })
+      }
+    }
 
     // Static reply: Abhinav's girlfriend information
     const staticAbhinav = maybeStaticAbhinavReply(userMessage.content)
@@ -77,7 +96,7 @@ export async function POST(request) {
       return NextResponse.json({ message: aiMessage, conversationId })
     }
 
-    // Static reply: handle creator/identity meta questions
+  // Static reply: handle creator/identity meta questions
     const staticReply = maybeStaticCreatorReply(userMessage.content)
     if (staticReply) {
       const aiMessage = {
