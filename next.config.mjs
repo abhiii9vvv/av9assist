@@ -23,7 +23,8 @@ const nextConfig = {
   },
 
   // Enable static generation where possible
-  output: 'standalone',
+  // Note: Do not use 'standalone' on Windows/Netlify; it triggers symlink creation and can fail with EPERM
+  // output: 'standalone',
   
   // Experimental features for performance
   experimental: {
