@@ -2,15 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://av9assist.vercel.app/</loc>
+    <lastmod>2025-09-15T00:00:00.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://av9assist.vercel.app/chat</loc>
+    <lastmod>2025-09-15T00:00:00.000Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  <lastmod>${new Date().toISOString()}</lastmod>
   <!-- Static fallback; dynamic route also exists at /sitemap.xml via app/sitemap.js -->
   <!-- Keep this file if Google reports Couldn't fetch to ensure availability. -->
   <!-- Updated: 2025-09-15 -->
