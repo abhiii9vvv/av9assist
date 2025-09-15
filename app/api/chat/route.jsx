@@ -96,6 +96,20 @@ export async function POST(request) {
       return NextResponse.json({ message: aiMessage, conversationId })
     }
 
+    // Correction: user denies creator attribution — clarify politely
+    const denial = maybeCreatorDenialReply(userMessage.content)
+    if (denial) {
+      const aiMessage = {
+        id: generateMessageId(),
+        content: denial,
+        sender: "ai",
+        timestamp: new Date().toISOString(),
+      }
+      updatedMessages.push(aiMessage)
+      conversations.set(conversationId, updatedMessages)
+      return NextResponse.json({ message: aiMessage, conversationId })
+    }
+
   // Static reply: handle creator/identity meta questions
     const staticReply = maybeStaticCreatorReply(userMessage.content)
     if (staticReply) {
@@ -188,18 +202,36 @@ function maybeStaticCreatorReply(text) {
 
   // patterns for “who made you / who created/built you / what company made you” etc.
   const patterns = [
-    /\bwho\s+(made|created|built)\s+(you|this|it)\b/,
-    /\bwho\s+is\s+your\s+(creator|maker)\b/,
-    /\bwho\s+developed\s+(you|this)\b/,
-    /\bwho\s+are\s+you\s+made\s+by\b/,
-    /\bwhat\s+company\s+(made|created|built)\s+(you|this)\b/,
-    /\bwho\s+designed\s+(you|this)\b/,
+    /\bwho\s+(made|created|built)\s+(you|u|this|it)\b/,               // who made you/u
+    /\bwho\s+is\s+your\s+(creator|maker)\b/,                          // who is your creator
+    /\bwho\s+developed\s+(you|u|this)\b/,                              // who developed you/u
+    /\bwho\s+are\s+you\s+made\s+by\b/,                               // who are you made by
+    /\bwhat\s+company\s+(made|created|built)\s+(you|u|this)\b/,       // what company built you
+    /\bwho\s+designed\s+(you|u|this)\b/,                               // who designed you
+    /\bwho\s+m[ao]d[ea]\s+(you|u)\b/,                                  // tolerate typos: mode/made u/you
+    /\bwho\s+build\s+(you|u)\b/,                                       // who build u
   ]
 
   if (patterns.some((re) => re.test(t))) {
     return `I was built by ${CANONICAL_NAME}.`
   }
   return ""
+}
+
+// Correct claims denying the creator attribution
+function maybeCreatorDenialReply(text) {
+  if (!text) return ""
+  const t = String(text).toLowerCase()
+  // Examples: "no you are not built by abhinav tiwary", "you're not made by abhinav"
+  const denyPatterns = [
+    /\bnot\s+(built|made|created)\s+by\s+abhinav\b/,
+    /\byou'?re\s+not\s+(built|made|created)\s+by\s+abhinav\b/,
+    /\bno\s+you\s+are\s+not\s+(built|made|created)\s+by\s+abhinav\b/,
+    /\b(abhinav|tiwar[yi])\s+didn'?t\s+(build|make|create)\s+you\b/,
+  ]
+  if (!denyPatterns.some((re) => re.test(t))) return ""
+
+  return `For this application, I was built by ${CANONICAL_NAME}. If you meant the underlying AI models, I can use different providers to generate replies.`
 }
 
 // Static reply for questions about Abhinav's girlfriend/relationship
