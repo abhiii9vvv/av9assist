@@ -58,6 +58,35 @@ export default function RootLayout({
         />
         {/* Favicon preload */}
         <link rel="preload" href="/favicon.svg" as="image" type="image/svg+xml" />
+        {/* JSON-LD structured data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'av9Assist',
+              url: 'https://av9assist.vercel.app',
+              logo: 'https://av9assist.vercel.app/favicon.svg',
+            }),
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebSite',
+              name: 'av9Assist',
+              url: 'https://av9assist.vercel.app',
+              potentialAction: {
+                '@type': 'SearchAction',
+                target: 'https://av9assist.vercel.app/?q={search_term_string}',
+                'query-input': 'required name=search_term_string',
+              },
+            }),
+          }}
+        />
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased overflow-x-hidden`}>
         <Suspense fallback={<PageLoader />}>
