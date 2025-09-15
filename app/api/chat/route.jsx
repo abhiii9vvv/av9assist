@@ -110,6 +110,19 @@ export async function POST(request) {
       return NextResponse.json({ message: aiMessage, conversationId })
     }
 
+    // Generic denial like "no you are not" immediately after creator answer
+    if (wasLastCreatorAttribution(existingMessages) && isGenericDenial(userMessage.content)) {
+      const aiMessage = {
+        id: generateMessageId(),
+        content: `For this application, I was built by ${CANONICAL_NAME}. If you’re asking about the underlying AI models, I can use different providers to generate responses.`,
+        sender: "ai",
+        timestamp: new Date().toISOString(),
+      }
+      updatedMessages.push(aiMessage)
+      conversations.set(conversationId, updatedMessages)
+      return NextResponse.json({ message: aiMessage, conversationId })
+    }
+
   // Static reply: handle creator/identity meta questions
     const staticReply = maybeStaticCreatorReply(userMessage.content)
     if (staticReply) {
@@ -232,6 +245,31 @@ function maybeCreatorDenialReply(text) {
   if (!denyPatterns.some((re) => re.test(t))) return ""
 
   return `For this application, I was built by ${CANONICAL_NAME}. If you meant the underlying AI models, I can use different providers to generate replies.`
+}
+
+// Was the last AI message our creator attribution?
+function wasLastCreatorAttribution(messages = []) {
+  if (!Array.isArray(messages) || messages.length === 0) return false
+  const last = messages[messages.length - 1]
+  if (!last || last.sender !== 'ai' || !last.content) return false
+  const t = String(last.content).toLowerCase()
+  return t.includes('built by') && t.includes(String(CANONICAL_NAME).toLowerCase())
+}
+
+// Very short, context-dependent denial phrases
+function isGenericDenial(text) {
+  if (!text) return false
+  const t = String(text).toLowerCase().trim()
+  const patterns = [
+    /^no\s+you\s+are\s+not\b/,           // no you are not
+    /^no\s+you'?re\s+not\b/,             // no you're not
+    /^you\s+are\s+not\b/,                // you are not
+    /\bthat'?s\s+not\s+true\b/,         // that's not true
+    /\bnot\s+true\b/,                    // not true
+    /\bfake\b/,                           // fake
+    /\bliar\b/,                           // liar
+  ]
+  return patterns.some((re) => re.test(t))
 }
 
 // Static reply for questions about Abhinav's girlfriend/relationship
