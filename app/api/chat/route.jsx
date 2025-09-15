@@ -228,6 +228,38 @@ function maybeStaticCreatorReply(text) {
   if (patterns.some((re) => re.test(t))) {
     return `I was built by ${CANONICAL_NAME}.`
   }
+  // Fuzzy fallback: tolerate small misspellings for the 3-token pattern ~ who + (made|built|created|developed|designed) + (you|u|this|it)
+  try {
+    const tokens = t
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 12) // keep it small
+
+    const whoLike = ["who", "wh0", "whu"]
+    const verbs = ["made", "build", "built", "create", "created", "developed", "designed", "make", "maked"]
+    const objs = ["you", "u", "this", "it"]
+
+    const near = (w, target) => editDistanceWithin(w, target, w.length <= 4 ? 1 : 2)
+    const nearOneOf = (w, list) => list.some((x) => near(w, x))
+
+    for (let i = 0; i < tokens.length; i++) {
+      const a = tokens[i]
+      const b = tokens[i + 1]
+      const c = tokens[i + 2]
+      if (!b || !c) break
+      if (nearOneOf(a, whoLike) && nearOneOf(b, verbs) && nearOneOf(c, objs)) {
+        return `I was built by ${CANONICAL_NAME}.`
+      }
+    }
+
+    // Also check condensed phrase windows like 'whomadeyou' with small distance
+    const condensed = t.replace(/[^a-z0-9]/g, "")
+    const candidates = ["whomadeyou", "whobuiltyou", "whobuildyou", "whocreatedyou", "whodevelopedyou", "whodesignedyou", "whomadeu", "whobuiltu"]
+    if (candidates.some((ph) => editDistanceWithin(condensed, ph, 2))) {
+      return `I was built by ${CANONICAL_NAME}.`
+    }
+  } catch {}
   return ""
 }
 
@@ -270,6 +302,37 @@ function isGenericDenial(text) {
     /\bliar\b/,                           // liar
   ]
   return patterns.some((re) => re.test(t))
+}
+
+// Edit distance with early exit. Returns true if distance <= maxEdits.
+function editDistanceWithin(a, b, maxEdits = 2) {
+  a = String(a || "")
+  b = String(b || "")
+  const la = a.length
+  const lb = b.length
+  if (Math.abs(la - lb) > maxEdits) return false
+  // Initialize two rows for DP
+  let prev = new Array(lb + 1)
+  let curr = new Array(lb + 1)
+  for (let j = 0; j <= lb; j++) prev[j] = j
+  for (let i = 1; i <= la; i++) {
+    curr[0] = i
+    let rowMin = curr[0]
+    const ai = a.charCodeAt(i - 1)
+    for (let j = 1; j <= lb; j++) {
+      const cost = ai === b.charCodeAt(j - 1) ? 0 : 1
+      curr[j] = Math.min(
+        prev[j] + 1,        // deletion
+        curr[j - 1] + 1,    // insertion
+        prev[j - 1] + cost  // substitution
+      )
+      rowMin = Math.min(rowMin, curr[j])
+    }
+    if (rowMin > maxEdits) return false // early exit
+    // swap
+    const tmp = prev; prev = curr; curr = tmp
+  }
+  return prev[lb] <= maxEdits
 }
 
 // Static reply for questions about Abhinav's girlfriend/relationship
