@@ -64,23 +64,20 @@ export async function POST(request) {
     // Add user message to conversation
     const updatedMessages = [...existingMessages, userMessage]
 
-    // Static reply: Who is Abhinav (your profile) — prioritize this before other static handlers
-    {
-      const normalized = normalizeForMatch(userMessage.content)
-      const simpleHit = normalized.includes('abhinav tiwar') // matches tiwari/tiwary after normalization
-      const regexHit = maybeAbhinavBioReply(userMessage.content)
-      if (simpleHit || regexHit) {
-        const content = regexHit || maybeAbhinavBioReply('who is abhinav tiwary')
-        const aiMessage = {
-          id: generateMessageId(),
-          content,
-          sender: "ai",
-          timestamp: new Date().toISOString(),
-        }
-        updatedMessages.push(aiMessage)
-        conversations.set(conversationId, updatedMessages)
-        return NextResponse.json({ message: aiMessage, conversationId })
+    // Explicit profile reply for Abhinav ONLY when directly asked (no trigger on mere mentions)
+    const staticAbhinavBio = maybeAbhinavBioReply(userMessage.content)
+    if (staticAbhinavBio) {
+      const aiMessage = {
+        id: generateMessageId(),
+        content: staticAbhinavBio, // return structured details as-is
+        sender: "ai",
+        timestamp: new Date().toISOString(),
       }
+
+      updatedMessages.push(aiMessage)
+      conversations.set(conversationId, updatedMessages)
+
+      return NextResponse.json({ message: aiMessage, conversationId })
     }
 
     // Static reply: Abhinav's girlfriend information
@@ -108,21 +105,6 @@ export async function POST(request) {
         sender: "ai",
         timestamp: new Date().toISOString(),
       }
-    // Static reply: Who is Abhinavb Tiwary (user's details)
-    const staticAbhinavBio = maybeAbhinavBioReply(userMessage.content)
-    if (staticAbhinavBio) {
-      const aiMessage = {
-        id: generateMessageId(),
-        content: staticAbhinavBio, // return structured details as-is
-        sender: "ai",
-        timestamp: new Date().toISOString(),
-      }
-
-      updatedMessages.push(aiMessage)
-      conversations.set(conversationId, updatedMessages)
-
-      return NextResponse.json({ message: aiMessage, conversationId })
-    }
 
       updatedMessages.push(aiMessage)
       conversations.set(conversationId, updatedMessages)
@@ -136,16 +118,16 @@ export async function POST(request) {
       content: m.content,
     }))
 
-    // If user intent looks like code, inject a hidden directive to avoid comments
+    // Detect intents that affect formatting/rules
     const codeIntent = looksLikeCodeIntent(userMessage.content)
-    const systemDirectives = codeIntent
-      ? [{ role: 'system', content: 'When the user is asking for code, respond with code only, no comments or explanations.' }]
-      : []
+    const promptRequest = looksLikePromptRequest(userMessage.content)
+    // Do NOT inject any hidden directives for prompt requests; and per request, also remove code-only directive
+    const systemDirectives = []
 
     // Generate AI response with context
   const aiRaw = await generateAIResponseFastFirst(body.message, body.userId, [...systemDirectives, ...recentContext])
-  // Auto-format raw AI/plain responses into a structured Markdown template
-  const aiResponse = autoFormatResponse(aiRaw)
+  // For prompt/code requests return raw; otherwise apply friendly auto-format
+  const aiResponse = (promptRequest || codeIntent) ? aiRaw : autoFormatResponse(aiRaw)
 
     const aiMessage = {
       id: generateMessageId(),
@@ -259,7 +241,7 @@ function maybeAbhinavBioReply(text) {
     /\bwho\s+is\s+abhinavb?\s+tiwar[yi]\b/,
     /\btell\s+me\s+about\s+abhinavb?\s+tiwar[yi]\b/,
     /\babhinavb?\s+tiwar[yi]\s+(bio|details|profile|info)\b/,
-    /\bwho\s+is\s+abh?inav\s+tiwary\b/,
+    /\babout\s+abhinavb?\s+tiwar[yi]\b/,
   ]
 
   if (!patterns.some((re) => re.test(t))) return ""
@@ -308,6 +290,16 @@ function looksLikeCodeIntent(text) {
   if (/```|\bjavascript\b|\btypescript\b|\bpython\b|\bjava\b|\bc\+\+\b|\bc#\b|\bgo\b|\brust\b|\bsql\b|\bhtml\b|\bcss\b/.test(t)) return true
   // Snippet keywords
   if (/\bexample\b.*\bcode\b|\bsnippet\b|\bboilerplate\b/.test(t)) return true
+  return false
+}
+
+// Detect when user is asking for a literal prompt (e.g., "give me a prompt for ..." or "prompt code")
+function looksLikePromptRequest(text) {
+  if (!text) return false
+  const t = String(text).toLowerCase()
+  // direct asks for prompts or prompt code
+  if (/\b(prompt|prompt\s+code|system\s+prompt|jailbreak\s+prompt|writing\s+prompt)\b/.test(t)) return true
+  if (/\bgive\s+me\s+(a|the)\s+prompt\b|\bwrite\s+.*\bprompt\b/.test(t)) return true
   return false
 }
 
