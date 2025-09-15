@@ -87,6 +87,12 @@ export default function RootLayout({
             }),
           }}
         />
+        {process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ? (
+          <meta
+            name="google-site-verification"
+            content={process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION}
+          />
+        ) : null}
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased overflow-x-hidden`}>
         <Suspense fallback={<PageLoader />}>
