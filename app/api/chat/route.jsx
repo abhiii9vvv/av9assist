@@ -24,7 +24,7 @@ export async function POST(request) {
     const normalized = normalizeForMatch(rawText)
 
     // Include ENV-configured lists plus built-in defaults for Hindi slurs
-    const defaults = 'randi,lund,chut,re:\\brandi\\w*,re:\\blund\\w*,re:\\bchut\\w*'
+  const defaults = 'randi,lund,chut,re:\\brandi\\w*,re:\\blund\\w*,re:\\bchut\\w*,chinar,cheenar,chhenar,re:\\bchi+na?r\\w*,re:\\bchh?e+na?r\\w*'
     const bannedList = parseBannedList([
       process.env.BANNED_WORDS,
       process.env.BANNED_WORDS_HI,
@@ -351,6 +351,7 @@ function maybeStaticAbhinavReply(text) {
     "love life",
     "seeing",
     "together",
+    "wife"
   ]
 
   const isGfQuery = gfKeywords.some((k) => t.includes(k)) ||
@@ -363,7 +364,7 @@ function maybeStaticAbhinavReply(text) {
   return ""
 }
 
-// Handle "who is abhinavb tiwary" and similar queries with provided details
+// Handle "who is abhinav tiwary" and similar queries with provided details
 function maybeAbhinavBioReply(text) {
   if (!text) return ""
   const t = String(text).toLowerCase().trim()
@@ -371,16 +372,17 @@ function maybeAbhinavBioReply(text) {
   // Match variants like: who is abhinav tiwary / who is abhinavb tiwary / tell me about ... / ... bio/details
   // Allow optional 'b' and minor spelling variants for 'tiwary' vs 'tiwari'
   const patterns = [
-    /\bwho\s+is\s+abhinavb?\s+tiwar[yi]\b/,
-    /\btell\s+me\s+about\s+abhinavb?\s+tiwar[yi]\b/,
-    /\babhinavb?\s+tiwar[yi]\s+(bio|details|profile|info)\b/,
-    /\babout\s+abhinavb?\s+tiwar[yi]\b/,
+    /\bwho\s+is\s+abhinav?\s+tiwar[yi]\b/,
+    /\btell\s+me\s+about\s+abhinav?\s+tiwar[yi]\b/,
+    /\babhinav?\s+tiwar[yi]\s+(bio|details|profile|info)\b/,
+    /\babout\s+abhinav?\s+tiwar[yi]\b/,
   ]
 
   if (!patterns.some((re) => re.test(t))) return ""
 
   // Provided details to return
   const abhinav = {
+    Name:"Abhinav Tiwary",
     pronouns: "he/him",
     location: "India 🇮🇳",
     currentFocus: "AI Integration & Full-Stack Development",

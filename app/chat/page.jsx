@@ -1065,6 +1065,46 @@ export default function ChatPage() {
       <footer className="border-t bg-card/70 backdrop-blur-sm sticky bottom-0 pb-safe shadow-inner shrink-0">
   <div className="container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-6xl">
           <FadeTransition>
+            {/* Suggestions row placed before the text input, at bottom of chat */}
+            {(promptIdeas?.length || corrections?.length || nextWords?.length) ? (
+              <div className="mb-1 sm:mb-2 flex flex-wrap items-center gap-1 sm:gap-1.5">
+                {promptIdeas && promptIdeas.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Prompt ideas:</span>
+                    {promptIdeas.slice(0, 4).map((p, idx) => (
+                      <Button key={p + idx} size="sm" variant="secondary" onClick={() => applyPromptIdea(p)} className="h-6 px-2 text-[10px] sm:text-xs">
+                        {p}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                {corrections && corrections.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Fix:</span>
+                    {corrections.slice(0, 3).map((c) => (
+                      <Button key={c} size="sm" variant="outline" onClick={() => applyCorrection(c)} className="h-6 px-2 text-[10px] sm:text-xs">
+                        {c}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                {nextWords && nextWords.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Next:</span>
+                    {nextWords.slice(0, 3).map((w) => (
+                      <Button key={w} size="sm" variant="ghost" onClick={() => applyNextWord(w)} className="h-6 px-2 text-[10px] sm:text-xs">
+                        {w}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+                <div className="ml-auto flex items-center gap-1 pl-1">
+                  <span className="text-[10px] sm:text-xs text-muted-foreground">Auto-correct</span>
+                  <Switch checked={autoCorrectEnabled} onCheckedChange={setAutoCorrectEnabled} />
+                </div>
+              </div>
+            ) : null}
+
             <Card className="p-1 sm:p-2 bg-background/70 backdrop-blur-sm border soft-divider shadow-sm transition-all duration-300 hover:shadow-md">
               <div className="flex gap-1 sm:gap-2 items-end">
                 <div className="flex-1 min-w-0">
@@ -1077,43 +1117,6 @@ export default function ChatPage() {
                     className="min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border-0 bg-muted/50 focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base transition-all duration-300 focus:scale-[1.01] sm:focus:scale-[1.02]"
                     disabled={false}
                   />
-                  {/* Suggestions Row */}
-                  <div className="mt-1 flex flex-wrap items-center gap-1 sm:gap-1.5">
-                    {promptIdeas && promptIdeas.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Prompt ideas:</span>
-                        {promptIdeas.slice(0, 4).map((p, idx) => (
-                          <Button key={p + idx} size="sm" variant="secondary" onClick={() => applyPromptIdea(p)} className="h-6 px-2 text-[10px] sm:text-xs">
-                            {p}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                    {corrections && corrections.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Fix:</span>
-                        {corrections.slice(0, 3).map((c) => (
-                          <Button key={c} size="sm" variant="outline" onClick={() => applyCorrection(c)} className="h-6 px-2 text-[10px] sm:text-xs">
-                            {c}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                    {nextWords && nextWords.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-                        <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Next:</span>
-                        {nextWords.slice(0, 3).map((w) => (
-                          <Button key={w} size="sm" variant="ghost" onClick={() => applyNextWord(w)} className="h-6 px-2 text-[10px] sm:text-xs">
-                            {w}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                    <div className="ml-auto flex items-center gap-1 pl-1">
-                      <span className="text-[10px] sm:text-xs text-muted-foreground">Auto-correct</span>
-                      <Switch checked={autoCorrectEnabled} onCheckedChange={setAutoCorrectEnabled} />
-                    </div>
-                  </div>
                 </div>
                 {/* Stop streaming button */}
                 <ScaleTransition>
