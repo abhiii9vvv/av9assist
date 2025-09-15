@@ -41,6 +41,8 @@ const DynamicTypingIndicator = dynamic(
 // Import Drawer components normally since they are used conditionally
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Switch } from "@/components/ui/switch"
+import { getCorrections, getNextWordSuggestions, getPromptCompletions, autoCorrectLastToken } from "@/lib/suggestions"
 
 
 
@@ -64,6 +66,12 @@ export default function ChatPage() {
   const router = useRouter()
   const [editingMessageId, setEditingMessageId] = useState(null)
   const [editingContent, setEditingContent] = useState("")
+  // Typing helpers: suggestions and autocorrect
+  const [autoCorrectEnabled, setAutoCorrectEnabled] = useState(true)
+  const [corrections, setCorrections] = useState([])
+  const [nextWords, setNextWords] = useState([])
+  const [promptIdeas, setPromptIdeas] = useState([])
+  const debounceRef = useRef(null)
 
   useEffect(() => {
     // Get user name from localStorage
@@ -120,6 +128,20 @@ export default function ChatPage() {
     onScroll()
     return () => list.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Update suggestions as the user types (debounced)
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      const text = String(inputValue || "")
+      const tokens = text.trim().split(/\s+/).filter(Boolean)
+      const last = tokens.length ? tokens[tokens.length - 1] : ""
+      setCorrections(getCorrections(last, 3))
+      setNextWords(getNextWordSuggestions(tokens, 3))
+      setPromptIdeas(getPromptCompletions(text, 4))
+    }, 120)
+    return () => debounceRef.current && clearTimeout(debounceRef.current)
+  }, [inputValue])
 
   const generateConversationTitle = (messages, userMessage = "") => {
     // If we have AI responses, try to extract title from them.
@@ -498,6 +520,39 @@ export default function ChatPage() {
   }
 
   const handleKeyPress = (e) => {
+    // Accept suggestion with Tab
+    if (e.key === "Tab") {
+      // Prefer next-word, then correction, then prompt idea
+      if (nextWords && nextWords.length) {
+        e.preventDefault()
+        applyNextWord(nextWords[0])
+        return
+      }
+      if (corrections && corrections.length) {
+        e.preventDefault()
+        applyCorrection(corrections[0])
+        return
+      }
+      if (promptIdeas && promptIdeas.length) {
+        e.preventDefault()
+        applyPromptIdea(promptIdeas[0])
+        return
+      }
+    }
+
+    // Auto-correct last token when hitting Space
+    if (autoCorrectEnabled && (e.key === " " || e.code === "Space")) {
+      const el = inputRef.current
+      // Only when caret is at end (simple heuristic)
+      const atEnd = el && el.selectionStart === el.value.length && el.selectionEnd === el.value.length
+      if (atEnd) {
+        e.preventDefault()
+        const corrected = autoCorrectLastToken(String(inputValue || ""))
+        setInputValue(corrected + " ")
+        return
+      }
+    }
+
     if (e.key === "Enter") {
       if (e.shiftKey) {
         // allow newline
@@ -506,6 +561,40 @@ export default function ChatPage() {
       e.preventDefault()
       handleSendMessage()
     }
+  }
+
+  // Apply helpers
+  const applyCorrection = (word) => {
+    const s = String(inputValue || "")
+    const m = s.match(/^(.*?)([A-Za-z]+)$/)
+    if (!m) return
+    const prefix = m[1]
+    const suffix = s.slice(m.index + m[0].length) || ""
+    const next = prefix + word + suffix
+    setInputValue(next)
+    // Move caret to end
+    requestAnimationFrame(() => {
+      try { inputRef.current?.setSelectionRange(next.length, next.length) } catch {}
+    })
+  }
+
+  const applyNextWord = (word) => {
+    const base = String(inputValue || "").replace(/\s+$/g, " ")
+    const joiner = base.endsWith(" ") ? "" : " "
+    const next = base + joiner + word + " "
+    setInputValue(next)
+    requestAnimationFrame(() => {
+      try { inputRef.current?.setSelectionRange(next.length, next.length) } catch {}
+    })
+  }
+
+  const applyPromptIdea = (idea) => {
+    const base = String(inputValue || "").trim()
+    const next = base ? base + "\n" + idea : idea
+    setInputValue(next)
+    requestAnimationFrame(() => {
+      try { inputRef.current?.setSelectionRange(next.length, next.length) } catch {}
+    })
   }
 
   const handleRegenerate = async (message) => {
@@ -988,6 +1077,43 @@ export default function ChatPage() {
                     className="min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border-0 bg-muted/50 focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base transition-all duration-300 focus:scale-[1.01] sm:focus:scale-[1.02]"
                     disabled={false}
                   />
+                  {/* Suggestions Row */}
+                  <div className="mt-1 flex flex-wrap items-center gap-1 sm:gap-1.5">
+                    {promptIdeas && promptIdeas.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Prompt ideas:</span>
+                        {promptIdeas.slice(0, 4).map((p, idx) => (
+                          <Button key={p + idx} size="sm" variant="secondary" onClick={() => applyPromptIdea(p)} className="h-6 px-2 text-[10px] sm:text-xs">
+                            {p}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                    {corrections && corrections.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Fix:</span>
+                        {corrections.slice(0, 3).map((c) => (
+                          <Button key={c} size="sm" variant="outline" onClick={() => applyCorrection(c)} className="h-6 px-2 text-[10px] sm:text-xs">
+                            {c}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                    {nextWords && nextWords.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
+                        <span className="text-[10px] sm:text-xs text-muted-foreground mr-1">Next:</span>
+                        {nextWords.slice(0, 3).map((w) => (
+                          <Button key={w} size="sm" variant="ghost" onClick={() => applyNextWord(w)} className="h-6 px-2 text-[10px] sm:text-xs">
+                            {w}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="ml-auto flex items-center gap-1 pl-1">
+                      <span className="text-[10px] sm:text-xs text-muted-foreground">Auto-correct</span>
+                      <Switch checked={autoCorrectEnabled} onCheckedChange={setAutoCorrectEnabled} />
+                    </div>
+                  </div>
                 </div>
                 {/* Stop streaming button */}
                 <ScaleTransition>
