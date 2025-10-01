@@ -1774,27 +1774,27 @@ export default function ChatPage() {
                 </div>
               ) : null
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {filteredConversations.map((c) => (
-                  <li key={c.id} className="group bg-card/50 hover:bg-card/80 border border-border/50 rounded-lg p-3 transition-all duration-200 hover:shadow-lg hover:scale-[1.01]">
+                  <li key={c.id} className="group bg-gradient-to-br from-card via-card/95 to-card/90 hover:from-card hover:via-card hover:to-card/95 border border-border rounded-xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-primary/5 hover:scale-[1.02] backdrop-blur-sm">
                     <div className="flex items-center justify-between gap-2">
                       <button
-                        className="text-left flex-1 min-w-0 hover:opacity-90"
+                        className="text-left flex-1 min-w-0 hover:opacity-80 transition-opacity"
                         onClick={() => openConversation(c.id)}
                       >
-                        <div className="font-semibold line-clamp-1 text-sm mb-1">{c.title || "Conversation"}</div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1">
-                          <MessageSquare className="w-3 h-3" />
-                          {new Date(c.updatedAt).toLocaleString()}
+                        <div className="font-bold line-clamp-1 text-sm mb-1.5 text-foreground group-hover:text-primary transition-colors">{c.title || "Conversation"}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>{new Date(c.updatedAt).toLocaleString()}</span>
                         </div>
                       </button>
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-0.5 shrink-0">
                         <Button 
                           variant="ghost" 
                           size="icon" 
                           onClick={() => toggleFavorite(c.id)} 
                           title={favorites.has(c.id) ? "Remove from favorites" : "Add to favorites"}
-                          className={`${favorites.has(c.id) ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-foreground"} transition-colors`}
+                          className={`h-9 w-9 rounded-lg ${favorites.has(c.id) ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-500/10" : "text-muted-foreground hover:text-foreground hover:bg-accent"} transition-all`}
                         >
                           <Star className={`w-4 h-4 ${favorites.has(c.id) ? "fill-current" : ""}`} />
                         </Button>
@@ -1803,7 +1803,7 @@ export default function ChatPage() {
                           size="icon" 
                           onClick={() => deleteConversation(c.id)} 
                           title="Delete"
-                          className="text-muted-foreground hover:text-destructive transition-colors"
+                          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
