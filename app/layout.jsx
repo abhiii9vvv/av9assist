@@ -11,22 +11,84 @@ import "highlight.js/styles/atom-one-dark.css"
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata = {
-  title: "av9Assist - Your AI-powered Assistant",
-  description: "Modern AI chat interface with sleek design and smooth animations",
-  generator: "v0.app",
-  keywords: ["AI", "assistant", "chat", "modern", "fast"],
-  authors: [{ name: "av9Assist" }],
+  title: {
+    default: "av9Assist - AI-Powered Chat Assistant | Free AI Chatbot",
+    template: "%s | av9Assist"
+  },
+  description: "Experience the future of AI conversation with av9Assist. Free, secure, and privacy-focused AI chat assistant. All data stored locally. No registration required. Powered by advanced AI technology.",
+  generator: "Next.js",
+  applicationName: "av9Assist",
+  keywords: [
+    "AI chat",
+    "AI assistant",
+    "chatbot",
+    "artificial intelligence",
+    "free AI",
+    "chat interface",
+    "AI conversation",
+    "local storage",
+    "privacy-focused AI",
+    "secure chat",
+    "AI technology",
+    "virtual assistant",
+    "conversational AI",
+    "smart assistant",
+    "AI chatbot free"
+  ],
+  authors: [{ name: "av9Assist Team", url: "https://av9assist.vercel.app" }],
+  creator: "av9Assist",
+  publisher: "av9Assist",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" }
+    ],
     shortcut: "/favicon.svg",
-    apple: "/favicon.svg",
+    apple: [
+      { url: "/favicon.svg", sizes: "180x180", type: "image/svg+xml" }
+    ],
   },
+  manifest: "/manifest.json",
   metadataBase: new URL('https://av9assist.vercel.app'),
-  openGraph: {
-    title: "av9Assist - Your AI-powered Assistant",
-    description: "Modern AI chat interface with sleek design and smooth animations",
-    type: "website",
+  alternates: {
+    canonical: "https://av9assist.vercel.app",
   },
+  openGraph: {
+    title: "av9Assist - AI-Powered Chat Assistant | Free AI Chatbot",
+    description: "Experience the future of AI conversation with av9Assist. Free, secure, and privacy-focused AI chat assistant. All data stored locally.",
+    url: "https://av9assist.vercel.app",
+    siteName: "av9Assist",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/placeholder-logo.svg",
+        width: 1200,
+        height: 630,
+        alt: "av9Assist AI Chat Assistant"
+      }
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "av9Assist - AI-Powered Chat Assistant",
+    description: "Free, secure, and privacy-focused AI chat assistant. All data stored locally.",
+    images: ["/placeholder-logo.svg"],
+    creator: "@av9assist",
+  },
+  category: "Technology",
+  classification: "AI & Machine Learning",
 }
 
 export const viewport = {
@@ -96,14 +158,7 @@ export default function RootLayout({
       </head>
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable} antialiased overflow-x-hidden`}>
         <Suspense fallback={<PageLoader />}>
-          <ThemeProvider
-            attribute="class"
-            // Prefer a bright appearance by default
-            defaultTheme="light"
-            enableSystem={false}
-            disableTransitionOnChange={false}
-            storageKey="av9assist-theme"
-          >
+          <ThemeProvider>
             <PageTransition>
               {children}
             </PageTransition>

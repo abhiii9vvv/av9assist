@@ -1,0 +1,27 @@
+# robots.txt for av9Assist
+User-agent: *
+Allow: /
+Allow: /chat
+Allow: /api/
+
+# Disallow admin or private sections if any
+Disallow: /api/internal/
+Disallow: /_next/static/
+
+# Sitemap
+Sitemap: https://av9assist.vercel.app/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 0
+
+# Specific bot rules
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 0

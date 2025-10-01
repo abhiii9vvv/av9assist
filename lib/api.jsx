@@ -15,6 +15,7 @@ export async function sendMessage(message, options = {}) {
       message,
       userId: options.userId,
       conversationId: options.conversationId,
+      image: options.image || null,
     }
 
     const response = await fetch(`${API_BASE_URL}/api/chat`, {

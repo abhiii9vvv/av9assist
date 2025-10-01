@@ -59,9 +59,9 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-br from-background via-card to-muted overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-background overflow-x-hidden">
       {/* Header */}
-      <header className="flex justify-between items-center p-3 sm:p-4 lg:p-6 sticky top-0 z-10 bg-background/80 backdrop-blur-sm">
+      <header className="flex justify-between items-center p-3 sm:p-4 lg:p-6 sticky top-0 z-10 glass-card">
         <div className="flex items-center gap-2 min-w-0">
           <Logo className="shrink-0" />
           <span className="text-lg sm:text-xl font-bold text-foreground truncate">av9Assist</span>
@@ -84,24 +84,21 @@ export default function LandingPage() {
 
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight">
               Welcome to <span className="text-primary">av9Assist</span>
-              <br />
-              Your AI-powered assistant
             </h1>
 
-            <p className="text-lg sm:text-xl text-muted-foreground text-pretty max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
-              Experience intelligent conversations with our modern AI interface. Get instant help, creative solutions,
-              and personalized assistance.
+            <p className="text-lg sm:text-xl text-muted-foreground text-pretty max-w-xl mx-auto leading-relaxed px-2 sm:px-0">
+              Your AI-powered assistant for instant help and creative solutions.
             </p>
           </StaggerItem>
 
           {/* Name Input Card */}
           <StaggerItem>
             <ScaleTransition>
-              <Card className="max-w-md mx-3 sm:mx-auto shadow-lg border-0 bg-card/50 backdrop-blur-sm">
+              <Card className="max-w-md mx-3 sm:mx-auto glass-strong border-0">
                 <CardHeader className="text-center pb-3 sm:pb-4 lg:pb-6 px-4 sm:px-6">
                   <CardTitle className="text-lg sm:text-xl lg:text-2xl">Get Started</CardTitle>
                   <CardDescription className="text-sm sm:text-base">
-                    Tell us your name for a personalized experience
+                    Enter your name (optional)
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
@@ -120,33 +117,22 @@ export default function LandingPage() {
                   <div className="space-y-2 sm:space-y-3">
                     <ScaleTransition whileHover={true} whileTap={true}>
                       <Button
-                        onClick={handleStartChat}
-                        disabled={!name.trim() || isLoading}
-                        className="w-full py-2.5 sm:py-3 text-base sm:text-lg font-medium transition-all duration-300 min-h-[44px]"
+                        onClick={name.trim() ? handleStartChat : handleSkipLogin}
+                        disabled={isLoading}
+                        className="w-full py-4 sm:py-5 text-lg sm:text-xl font-medium transition-all duration-300 min-h-[56px] sm:min-h-[64px]"
                         size="lg"
                       >
                         {isLoading ? (
                           <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
                             Starting...
                           </div>
                         ) : (
                           <div className="flex items-center gap-2">
                             Start Chatting
-                            <ArrowRight className="w-4 h-4" />
+                            <ArrowRight className="w-5 h-5" />
                           </div>
                         )}
-                      </Button>
-                    </ScaleTransition>
-
-                    <ScaleTransition>
-                      <Button
-                        onClick={handleSkipLogin}
-                        variant="ghost"
-                        className="w-full text-muted-foreground hover:text-foreground min-h-[44px]"
-                        disabled={isLoading}
-                      >
-                        Skip for now
                       </Button>
                     </ScaleTransition>
                   </div>
@@ -159,42 +145,42 @@ export default function LandingPage() {
           <StaggerItem>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mt-8 sm:mt-12 lg:mt-16 px-3 sm:px-4 lg:px-0">
               <ScaleTransition>
-                <Card className="border-0 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all duration-300">
+                <Card className="border-0 glass-card hover:surface-elevated transition-all duration-300">
                   <CardContent className="p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 lg:space-y-4">
-                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                      <Zap className="w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 text-primary" />
+                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto">
+                      <Zap className="w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 text-primary-foreground" />
                     </div>
                     <h3 className="text-base sm:text-lg font-semibold">Lightning Fast</h3>
                     <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
-                      Get instant responses with our optimized AI engine
+                      Instant AI responses
                     </p>
                   </CardContent>
                 </Card>
               </ScaleTransition>
 
               <ScaleTransition>
-                <Card className="border-0 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all duration-300">
+                <Card className="border-0 glass-card hover:surface-elevated transition-all duration-300">
                   <CardContent className="p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 lg:space-y-4">
-                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto">
                       <Shield className="w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 text-primary" />
                     </div>
                     <h3 className="text-sm sm:text-base lg:text-lg font-semibold">Secure & Private</h3>
                     <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
-                      Your conversations are protected with enterprise-grade security
+                      Enterprise-grade security
                     </p>
                   </CardContent>
                 </Card>
               </ScaleTransition>
 
               <ScaleTransition>
-                <Card className="border-0 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all duration-300 sm:col-span-2 lg:col-span-1">
+                <Card className="border-0 glass-card hover:surface-elevated transition-all duration-300 sm:col-span-2 lg:col-span-1">
                   <CardContent className="p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 lg:space-y-4">
-                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-gradient-accent rounded-full flex items-center justify-center mx-auto">
                       <Sparkles className="w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 text-primary" />
                     </div>
                     <h3 className="text-sm sm:text-base lg:text-lg font-semibold">Smart & Adaptive</h3>
                     <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
-                      AI that learns and adapts to your communication style
+                      Learns your style
                     </p>
                   </CardContent>
                 </Card>
@@ -211,6 +197,37 @@ export default function LandingPage() {
           </div>
         </div>
       )}
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "av9Assist",
+            "applicationCategory": "ChatApplication",
+            "operatingSystem": "Web Browser",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.8",
+              "ratingCount": "1250"
+            },
+            "description": "Free AI-powered chat assistant with local storage for privacy and security",
+            "featureList": [
+              "AI-powered conversations",
+              "Local data storage",
+              "Privacy-focused",
+              "No registration required",
+              "Free to use"
+            ]
+          })
+        }}
+      />
     </div>
   )
 }

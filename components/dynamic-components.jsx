@@ -23,8 +23,16 @@ export const DynamicTypingIndicator = dynamic(
 export const DynamicThemeToggle = dynamic(
   () => import('./theme-toggle').then(mod => ({ default: mod.ThemeToggle })),
   {
-    loading: () => <div className="w-9 h-9 bg-muted animate-pulse rounded-md" />,
-    ssr: false
+    loading: () => (
+      <button 
+        className="w-10 h-10 bg-muted/50 animate-pulse rounded-md flex items-center justify-center"
+        disabled
+        aria-label="Loading theme toggle"
+      >
+        <div className="w-4 h-4 bg-muted-foreground/30 rounded" />
+      </button>
+    ),
+    ssr: true
   }
 )
 

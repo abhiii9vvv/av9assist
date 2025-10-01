@@ -19,6 +19,9 @@ export async function POST(request) {
       return NextResponse.json({ error: "Message is required and must be a string" }, { status: 400 })
     }
 
+    // Extract image data if present (base64 format)
+    const imageData = body.image || null
+
     // Moderation: configurable banned words with Hindi support and regex patterns
     const rawText = String(body.message || "")
     const normalized = normalizeForMatch(rawText)
@@ -59,6 +62,7 @@ export async function POST(request) {
       content: body.message.trim(),
       sender: "user",
       timestamp: new Date().toISOString(),
+      image: imageData,
     }
 
     // Add user message to conversation
@@ -143,6 +147,7 @@ export async function POST(request) {
     const recentContext = updatedMessages.slice(-10).map((m) => ({
       role: m.sender === 'ai' ? 'assistant' : m.sender,
       content: m.content,
+      image: m.image || null,
     }))
 
     // Detect intents that affect formatting/rules
@@ -151,10 +156,16 @@ export async function POST(request) {
     // Do NOT inject any hidden directives for prompt requests; and per request, also remove code-only directive
     const systemDirectives = []
 
-    // Generate AI response with context
-  const aiRaw = await generateAIResponseFastFirst(body.message, body.userId, [...systemDirectives, ...recentContext])
+    // Generate AI response with context (including image if present)
+  const aiRaw = await generateAIResponseFastFirst(body.message, body.userId, [...systemDirectives, ...recentContext], imageData)
   // For prompt/code requests return raw; otherwise apply friendly auto-format
   const aiResponse = (promptRequest || codeIntent) ? aiRaw : autoFormatResponse(aiRaw)
+  
+  // Debug: Log what we're actually sending
+  console.log('=== AI Response Debug ===');
+  console.log('Raw AI:', aiRaw.substring(0, 200));
+  console.log('Formatted:', aiResponse.substring(0, 200));
+  console.log('========================');
 
     const aiMessage = {
       id: generateMessageId(),
@@ -479,27 +490,29 @@ async function generateAIResponseLegacy(userMessage, userId) {
   }
 }
 
-async function generateAIResponseFastFirst(userMessage, userId, contextFromRoute = []) {
+async function generateAIResponseFastFirst(userMessage, userId, contextFromRoute = [], imageData = null) {
   try {
     const aiProvider = new AIProvider()
     const context = [
       {
         role: "system",
-        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions.",
+        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions. When users send images, analyze and describe them accurately.",
       },
       // Recent chat context from the current conversation
       ...(Array.isArray(contextFromRoute) ? contextFromRoute : []),
     ]
 
-    // Try fast parallel first with shorter timeout to reduce latency spikes
-    const fast = await aiProvider.getAIResponseFast(userMessage, null, context, { timeoutMs: 6000 })
+    // Try fast parallel first with extended timeout for image processing
+    // Images require more time to process, so increase timeout from 6s to 30s when image is present
+    const timeoutMs = imageData ? 30000 : 6000
+    const fast = await aiProvider.getAIResponseFast(userMessage, null, context, { timeoutMs, imageData })
     if (fast && fast.success) {
       console.log(`[v1] Fast AI response using ${fast.provider}`)
       return fast.response
     }
 
     // Fallback to legacy sequential approach
-    const result = await aiProvider.getAIResponse(userMessage, null, context)
+    const result = await aiProvider.getAIResponse(userMessage, null, context, imageData)
     if (result.success) {
       console.log(`[v1] Sequential AI response using ${result.provider}`)
       return result.response
