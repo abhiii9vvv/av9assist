@@ -293,25 +293,7 @@ export const ChatMessage = memo(function ChatMessage({
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Avatar shown only for user messages (AI bubble has header above instead) */}
-      {isUser && (
-        <div className="relative flex-shrink-0">
-          <Avatar className={cn(
-            "w-8 h-8 sm:w-9 sm:h-9 transition-all duration-300 ring-2",
-            "ring-primary/30 hover:ring-primary/50",
-            "shadow-lg hover:shadow-xl"
-          )}>
-            <AvatarFallback
-              className={cn(
-                "text-sm font-semibold transition-all duration-300",
-                "bg-gradient-to-br from-primary to-primary/80 text-primary-foreground hover:from-primary/90 hover:to-primary/70",
-              )}
-            >
-              <User className="w-4 h-4 sm:w-5 sm:h-5" />
-            </AvatarFallback>
-          </Avatar>
-        </div>
-      )}
+      {/* Avatar removed for user messages - cleaner look */}
 
       {/* Message Content Container */}
       <div
