@@ -1561,7 +1561,7 @@ export default function ChatPage() {
                       onFocus={() => setIsInputFocused(true)}
                       onBlur={() => setIsInputFocused(false)}
                       placeholder="Type your message..."
-                      className={`min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border-0 bg-muted/50 focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base ${
+                      className={`min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none !border-0 bg-muted/50 focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none ${
                         inputError ? "border-red-500 focus-visible:ring-red-500" : ""
                       }`}
                       disabled={false}
