@@ -1315,7 +1315,7 @@ export default function ChatPage() {
         {statusMessage}
       </div>
       {/* Header */}
-      <header className="border-b bg-card/70 backdrop-blur-sm sticky top-0 z-10 shadow-sm shrink-0">
+      <header className="border-b bg-gradient-to-r from-background via-card/95 to-background backdrop-blur-md sticky top-0 z-10 shadow-lg shrink-0">
         <div className="container mx-auto px-1 sm:px-2 py-2 sm:py-3 flex items-center justify-between max-w-6xl">
           <div className="flex items-center gap-1 sm:gap-2 min-w-0">
             <Button
@@ -1352,33 +1352,6 @@ export default function ChatPage() {
               title="History"
             >
               <HistoryIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowKeyboardShortcuts(true)}
-              className="min-w-[44px] min-h-[44px] hidden sm:flex"
-              title="Keyboard Shortcuts"
-            >
-              <Keyboard className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowAnalytics(true)}
-              className="min-w-[44px] min-h-[44px]"
-              title="Analytics"
-            >
-              <BarChart className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowHelp(true)}
-              className="min-w-[44px] min-h-[44px]"
-              title="Help & Tips"
-            >
-              <HelpCircle className="w-4 h-4" />
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -1568,18 +1541,14 @@ export default function ChatPage() {
                     className="hidden"
                     aria-label="Upload image"
                   />
-                  {/* Image attachment button - Coming Soon */}
+                  {/* Image attachment button */}
                   <Button
-                    onClick={() => {
-                      setError('Image upload feature coming soon! 🚀')
-                      setTimeout(() => setError(''), 3000)
-                    }}
+                    onClick={() => fileInputRef.current?.click()}
                     variant="ghost"
                     size="icon"
-                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 opacity-50 cursor-not-allowed"
-                    title="Image upload (Coming Soon)"
-                    aria-label="Image upload coming soon"
-                    disabled
+                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 hover:bg-accent"
+                    title="Upload image"
+                    aria-label="Upload image"
                   >
                     <ImageIcon className="w-4 h-4" />
                   </Button>
