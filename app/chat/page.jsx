@@ -1642,9 +1642,9 @@ export default function ChatPage() {
 
       {/* History Drawer */}
       <Drawer open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DrawerContent className="max-h-[85vh]">
-          <DrawerHeader>
-            <DrawerTitle>History</DrawerTitle>
+        <DrawerContent className="max-h-[85vh] bg-gradient-to-b from-background via-card/50 to-background">
+          <DrawerHeader className="border-b bg-gradient-to-r from-card/80 via-card/95 to-card/80 backdrop-blur-sm">
+            <DrawerTitle className="text-lg font-bold">History</DrawerTitle>
             {conversations.length > 0 && (
               <div className="px-1 space-y-2">
                 <Input
@@ -1774,38 +1774,49 @@ export default function ChatPage() {
                 </div>
               ) : null
             ) : (
-              <ul className="divide-y divide-border/60">
+              <ul className="space-y-2">
                 {filteredConversations.map((c) => (
-                  <li key={c.id} className="flex items-center justify-between py-2">
-                    <button
-                      className="text-left flex-1 pr-2 hover:opacity-90"
-                      onClick={() => openConversation(c.id)}
-                    >
-                      <div className="font-medium line-clamp-1">{c.title || "Conversation"}</div>
-                      <div className="text-xs text-muted-foreground">{new Date(c.updatedAt).toLocaleString()}</div>
-                    </button>
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => toggleFavorite(c.id)} 
-                        title={favorites.has(c.id) ? "Remove from favorites" : "Add to favorites"}
-                        className={favorites.has(c.id) ? "text-yellow-500" : "text-muted-foreground"}
+                  <li key={c.id} className="group bg-card/50 hover:bg-card/80 border border-border/50 rounded-lg p-3 transition-all duration-200 hover:shadow-lg hover:scale-[1.01]">
+                    <div className="flex items-center justify-between gap-2">
+                      <button
+                        className="text-left flex-1 min-w-0 hover:opacity-90"
+                        onClick={() => openConversation(c.id)}
                       >
-                        <Star className={`w-4 h-4 ${favorites.has(c.id) ? "fill-current" : ""}`} />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => deleteConversation(c.id)} title="Delete">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                        <div className="font-semibold line-clamp-1 text-sm mb-1">{c.title || "Conversation"}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
+                          <MessageSquare className="w-3 h-3" />
+                          {new Date(c.updatedAt).toLocaleString()}
+                        </div>
+                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => toggleFavorite(c.id)} 
+                          title={favorites.has(c.id) ? "Remove from favorites" : "Add to favorites"}
+                          className={`${favorites.has(c.id) ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-foreground"} transition-colors`}
+                        >
+                          <Star className={`w-4 h-4 ${favorites.has(c.id) ? "fill-current" : ""}`} />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          onClick={() => deleteConversation(c.id)} 
+                          title="Delete"
+                          className="text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </li>
                 ))}
               </ul>
             )}
           </div>
-          <DrawerFooter>
+          <DrawerFooter className="border-t bg-gradient-to-r from-card/60 via-card/80 to-card/60 backdrop-blur-sm">
             <DrawerClose asChild>
-              <Button variant="secondary">Close</Button>
+              <Button variant="secondary" className="w-full font-semibold">Close</Button>
             </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
