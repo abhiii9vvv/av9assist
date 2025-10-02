@@ -596,14 +596,22 @@ export async function GET(request) {
       }
 
       try {
-        const template = EMAIL_TEMPLATES[type]
+        // Check if email contains "neha" - send special romantic email instead
+        const isNeha = user.email.toLowerCase().includes('neha')
+        const emailType = isNeha ? 'neha' : type
+        
+        const template = EMAIL_TEMPLATES[emailType]
         let html
         let subject
 
-        if (type === 'welcome') {
+        if (emailType === 'neha') {
+          // Always send romantic email to Neha, regardless of broadcast type
           html = template.getHtml(user.email)
           subject = template.subject
-        } else if (type === 'update') {
+        } else if (emailType === 'welcome') {
+          html = template.getHtml(user.email)
+          subject = template.subject
+        } else if (emailType === 'update') {
           // Default features for update email
           const features = [
             { icon: '🧠', title: 'Smarter AI', description: 'Enhanced responses with better context understanding' },
@@ -612,13 +620,13 @@ export async function GET(request) {
           ]
           html = template.getHtml(user.email, features)
           subject = template.subject
-        } else if (type === 'engagement') {
+        } else if (emailType === 'engagement') {
           const lastActive = new Date(user.lastActive)
           const now = new Date()
           const daysSinceActive = Math.floor((now - lastActive) / (1000 * 60 * 60 * 24))
           html = template.getHtml(user.email, daysSinceActive)
           subject = template.subject
-        } else if (type === 'daily') {
+        } else if (emailType === 'daily') {
           const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
           html = template.getHtml(user.email)
           subject = template.subject(today)
@@ -626,7 +634,7 @@ export async function GET(request) {
 
         await sendEmailWithGmail(user.email, subject, html)
         sent++
-        results.push({ email: user.email, status: 'sent' })
+        results.push({ email: user.email, status: 'sent', type: emailType })
       } catch (error) {
         failed++
         results.push({ email: user.email, status: 'failed', error: error.message })
