@@ -457,7 +457,7 @@ async function generateAIResponseLegacy(userMessage, userId) {
     const context = [
       {
         role: "system",
-        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions. Use proper markdown formatting: ## for headings, - for bullet points, **bold** for emphasis, and proper line breaks between sections.",
+        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions.\n\nFORMATTING: Use ## for headings, - for bullet points (EACH ON NEW LINE), **bold** for emphasis, and blank lines between sections.",
       },
     ]
 
@@ -496,7 +496,7 @@ async function generateAIResponseFastFirst(userMessage, userId, contextFromRoute
     const context = [
       {
         role: "system",
-        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions. When users send images, analyze and describe them accurately. Always use proper markdown formatting: ## for headings, - for bullet points, **bold** for emphasis, numbered lists (1. 2. 3.), and proper line breaks between sections for better readability.",
+        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions. When users send images, analyze and describe them accurately.\n\nIMPORTANT FORMATTING RULES:\n- Use ## for main headings (each on new line)\n- Use - for bullet points (each bullet on NEW LINE)\n- Use **bold** for emphasis\n- Use numbered lists (1. 2. 3.) each on NEW LINE\n- Add blank lines between sections\n- Never put multiple bullets in same line\n\nExample:\n## Heading\nSome text.\n\n- First point\n- Second point\n- Third point",
       },
       // Recent chat context from the current conversation
       ...(Array.isArray(contextFromRoute) ? contextFromRoute : []),
