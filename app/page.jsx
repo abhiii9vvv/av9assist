@@ -137,12 +137,12 @@ export default function LandingPage() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 lg:px-6 py-8 sm:py-12 lg:py-16">
-        <div className="max-w-6xl mx-auto">
+      <main className="container mx-auto px-4 lg:px-6 py-8 sm:py-12 lg:py-16 min-h-[calc(100vh-5rem)] flex items-center">
+        <div className="max-w-6xl mx-auto w-full">
           <StaggerContainer className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             
             {/* Left Column - Hero Content */}
-            <StaggerItem className="space-y-6 lg:space-y-8">
+            <StaggerItem className="space-y-6 lg:space-y-8 order-2 lg:order-1">
               <FadeTransition delay={0.1}>
                 <Badge variant="secondary" className="px-4 py-2 text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0">
                   <Bot className="w-4 h-4 mr-2" />
@@ -208,7 +208,7 @@ export default function LandingPage() {
             </StaggerItem>
 
             {/* Right Column - Email Input Card */}
-            <StaggerItem>
+            <StaggerItem className="order-1 lg:order-2">
               <ScaleTransition>
                 <Card className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-2 border-gray-200/50 dark:border-gray-800/50 shadow-2xl">
                   <CardHeader className="text-center space-y-2 pb-6">
