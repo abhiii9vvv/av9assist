@@ -1,0 +1,43 @@
+# 🔐 VERCEL ENVIRONMENT VARIABLE
+
+Add this to Vercel Dashboard:
+
+**Key:** 
+```
+MONGODB_URI
+```
+
+**Value:** 
+```
+mongodb+srv://gyanutiwari758_db_user:p8rsRnPZKDATYudO@av9assist.catdgyz.mongodb.net/?retryWrites=true&w=majority&appName=av9assist
+```
+
+**Environment:** 
+- ✅ Production
+- ✅ Preview (optional)
+- ✅ Development (optional)
+
+---
+
+## 📋 Steps:
+
+1. Go to: https://vercel.com/abhiii9vvv/av9assist/settings/environment-variables
+2. Click **"Create New"**
+3. Paste the key and value above
+4. Select **Production**
+5. Click **Save**
+
+Vercel will automatically redeploy! 🚀
+
+---
+
+## ⚠️ Security Note:
+
+This file is in .gitignore and won't be pushed to GitHub.
+The connection string is only stored in:
+- Local `.env.local` (for development)
+- Vercel Environment Variables (for production)
+
+---
+
+✅ **After adding to Vercel:** Wait 2-3 minutes for deployment, then test registration!
