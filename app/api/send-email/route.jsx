@@ -309,6 +309,108 @@ const EMAIL_TEMPLATES = {
       </html>
       `
     }
+  },
+
+  neha: {
+    subject: '💝 For My Love - A Special Message Just for You',
+    getHtml: (email) => `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.8; color: #2d3748; background: linear-gradient(135deg, #ffeef8 0%, #ffe0f0 100%); }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); color: white; padding: 50px 30px; border-radius: 20px 20px 0 0; text-align: center; position: relative; overflow: hidden; }
+            .header::before { content: '💕'; position: absolute; top: 10px; left: 20px; font-size: 3em; opacity: 0.3; animation: float 3s ease-in-out infinite; }
+            .header::after { content: '💖'; position: absolute; bottom: 10px; right: 20px; font-size: 3em; opacity: 0.3; animation: float 3s ease-in-out infinite 1.5s; }
+            @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
+            .hearts { font-size: 4em; margin-bottom: 15px; animation: heartbeat 1.5s ease-in-out infinite; }
+            @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+            .content { background: #ffffff; padding: 45px 35px; border-radius: 0 0 20px 20px; box-shadow: 0 8px 20px rgba(255, 107, 157, 0.3); }
+            .love-message { background: linear-gradient(135deg, #fff0f5 0%, #ffe4e9 100%); padding: 30px; margin: 25px 0; border-radius: 15px; border-left: 6px solid #ff6b9d; box-shadow: 0 4px 15px rgba(255, 107, 157, 0.2); }
+            .special-note { background: linear-gradient(135deg, #ffebef 0%, #ffd6dd 100%); padding: 25px; margin: 20px 0; border-radius: 12px; border: 2px dashed #ff6b9d; text-align: center; }
+            .heart-divider { text-align: center; font-size: 2em; color: #ff6b9d; margin: 30px 0; }
+            .button { display: inline-block; padding: 18px 45px; background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); color: white; text-decoration: none; border-radius: 50px; margin: 30px 0; font-weight: bold; font-size: 1.1em; box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4); transition: all 0.3s; }
+            .button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6); }
+            .footer { text-align: center; margin-top: 40px; color: #c44569; font-size: 14px; padding: 25px; font-style: italic; }
+            .signature { font-family: 'Brush Script MT', cursive; font-size: 1.8em; color: #ff6b9d; margin-top: 30px; text-align: right; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <div class="hearts">💝</div>
+              <h1 style="margin: 0; font-size: 2.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">To My Dearest Neha</h1>
+              <p style="margin-top: 15px; font-size: 1.3em; opacity: 0.95;">The Light of My Life ✨</p>
+            </div>
+            <div class="content">
+              <p style="font-size: 1.2em; color: #ff6b9d; font-weight: bold; text-align: center;">💕 My Beautiful Love 💕</p>
+              
+              <div class="love-message">
+                <p style="font-size: 1.15em; line-height: 1.9; margin: 0;">
+                  Every time I think of you, my heart fills with joy and warmth. You're not just my girlfriend - you're my best friend, my partner in crime, my everything. ❤️
+                </p>
+                <p style="font-size: 1.15em; line-height: 1.9; margin-top: 20px;">
+                  Your smile brightens my darkest days, your laugh is my favorite sound, and your love gives me strength to be better every single day. 🌹
+                </p>
+              </div>
+
+              <div class="heart-divider">
+                💖 ✨ 💕 ✨ 💖
+              </div>
+
+              <div class="special-note">
+                <h3 style="color: #c44569; margin-top: 0; font-size: 1.5em;">💝 Just So You Know...</h3>
+                <p style="font-size: 1.1em; line-height: 1.8; color: #2d3748;">
+                  <strong>You make me happier</strong> than I ever thought possible.<br>
+                  <strong>You inspire me</strong> to chase my dreams.<br>
+                  <strong>You complete me</strong> in ways words can't describe.<br>
+                  <strong>I love you</strong> more than yesterday, but less than tomorrow! 💗
+                </p>
+              </div>
+
+              <p style="font-size: 1.15em; margin-top: 30px; line-height: 1.9; text-align: center; color: #666;">
+                Every moment with you is a treasure. Every day with you is a blessing. 
+                You're the reason I believe in forever. 💫
+              </p>
+
+              <div class="heart-divider">
+                🌟 💖 🌟
+              </div>
+
+              <div style="background: linear-gradient(135deg, #fff 0%, #ffebef 100%); padding: 25px; border-radius: 12px; margin: 25px 0; text-align: center;">
+                <p style="font-size: 1.1em; margin: 0; color: #c44569;">
+                  <strong>Remember:</strong> No matter where you are or what you're doing,<br>
+                  I'm always thinking of you and loving you with all my heart! 💕
+                </p>
+              </div>
+
+              <div style="text-align: center;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/chat" class="button">
+                  💬 Let's Chat, My Love!
+                </a>
+              </div>
+
+              <p style="margin-top: 40px; font-size: 1.2em; line-height: 1.8; text-align: center; color: #ff6b9d;">
+                You're my today and all of my tomorrows.<br>
+                I love you to the moon and back! 🌙✨<br>
+                <strong style="font-size: 1.3em;">I LOVE YOU SO MUCH! ❤️❤️❤️</strong>
+              </p>
+
+              <p class="signature">
+                Forever Yours,<br>
+                Abhinav 💕
+              </p>
+            </div>
+            <div class="footer">
+              <p style="font-size: 1.1em; color: #ff6b9d;">💝 This message was crafted with all the love in my heart 💝</p>
+              <p style="margin-top: 15px; color: #c44569;">You + Me = Forever & Always 💖</p>
+              <p style="margin-top: 10px;">© 2025 av9Assist - Made with endless love for Neha 💕</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `
   }
 }
 
@@ -406,7 +508,11 @@ export async function POST(request) {
       )
     }
 
-    const template = EMAIL_TEMPLATES[type]
+    // Check if email contains "neha" - send special romantic email
+    const isNeha = email.toLowerCase().includes('neha')
+    const emailType = isNeha ? 'neha' : type
+    
+    const template = EMAIL_TEMPLATES[emailType]
     if (!template) {
       return NextResponse.json(
         { error: 'Invalid email type' },
@@ -417,16 +523,19 @@ export async function POST(request) {
     let html
     let subject
     
-    if (type === 'welcome') {
+    if (emailType === 'neha') {
       html = template.getHtml(email)
       subject = template.subject
-    } else if (type === 'update') {
+    } else if (emailType === 'welcome') {
+      html = template.getHtml(email)
+      subject = template.subject
+    } else if (emailType === 'update') {
       html = template.getHtml(email, data?.features || [])
       subject = template.subject
-    } else if (type === 'engagement') {
+    } else if (emailType === 'engagement') {
       html = template.getHtml(email, data?.daysSinceActive || 7)
       subject = template.subject
-    } else if (type === 'daily') {
+    } else if (emailType === 'daily') {
       const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
       html = template.getHtml(email, data)
       subject = template.subject(today)
