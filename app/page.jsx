@@ -216,7 +216,7 @@ export default function LandingPage() {
 
       {/* Version 1.1 New Features Popup */}
       <Dialog open={showVersionPopup} onOpenChange={setShowVersionPopup}>
-        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary" className="px-3 py-1">
@@ -224,82 +224,44 @@ export default function LandingPage() {
                 v1.1
               </Badge>
             </div>
-            <DialogTitle className="text-2xl">✨ What's New in av9Assist!</DialogTitle>
+            <DialogTitle className="text-2xl">✨ What's New!</DialogTitle>
             <DialogDescription className="text-base">
-              Exciting new features and improvements are now available
+              We've added some exciting new features
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            {/* Feature 1: Image Upload */}
-            <div className="flex gap-3 p-4 rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
-              <div className="shrink-0 w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                <Image className="w-5 h-5 text-primary" />
+          <div className="space-y-3 py-4">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mt-0.5">
+                <Image className="w-4 h-4 text-primary" />
               </div>
-              <div className="space-y-1">
-                <h3 className="font-semibold flex items-center gap-2">
-                  🖼️ AI Vision - Image Upload
-                  <Badge variant="secondary" className="text-xs">NEW</Badge>
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Upload images and get detailed AI-powered descriptions and analysis. Perfect for understanding visual content!
+              <div>
+                <p className="text-sm leading-relaxed">
+                  <span className="font-semibold">🖼️ Image Upload:</span> Now you can upload images and get AI-powered analysis and descriptions
                 </p>
               </div>
             </div>
 
-            {/* Feature 2: Performance */}
-            <div className="flex gap-3 p-4 rounded-lg bg-gradient-to-r from-secondary/10 via-secondary/5 to-transparent border border-secondary/20">
-              <div className="shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
-                <Zap className="w-5 h-5 text-secondary" />
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5">
+                <Zap className="w-4 h-4 text-secondary" />
               </div>
-              <div className="space-y-1">
-                <h3 className="font-semibold flex items-center gap-2">
-                  ⚡ 50% Faster Responses
-                  <Badge variant="secondary" className="text-xs">IMPROVED</Badge>
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Optimized AI processing with smart image compression. Get answers in 8-15 seconds instead of 20-30!
+              <div>
+                <p className="text-sm leading-relaxed">
+                  <span className="font-semibold">⚡ Faster Responses:</span> Improved performance with optimized AI processing for quicker answers
                 </p>
               </div>
             </div>
 
-            {/* Feature 3: UI Improvements */}
-            <div className="flex gap-3 p-4 rounded-lg bg-gradient-to-r from-accent/10 via-accent/5 to-transparent border border-accent/20">
-              <div className="shrink-0 w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-accent" />
+            <div className="flex items-start gap-3">
+              <div className="shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center mt-0.5">
+                <Sparkles className="w-4 h-4 text-accent" />
               </div>
-              <div className="space-y-1">
-                <h3 className="font-semibold flex items-center gap-2">
-                  🎨 Enhanced UI & Dark Mode
-                  <Badge variant="secondary" className="text-xs">POLISHED</Badge>
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  Beautiful gradient backgrounds, smooth animations, and improved dark mode. Now with shimmer loading effects!
+              <div>
+                <p className="text-sm leading-relaxed">
+                  <span className="font-semibold">🎨 UI Improvements:</span> Beautiful new design with smooth animations and enhanced dark mode
                 </p>
               </div>
-            </div>
-
-            {/* Additional improvements */}
-            <div className="space-y-2 pt-2">
-              <p className="text-sm font-medium text-muted-foreground">Other Improvements:</p>
-              <ul className="space-y-1.5 text-sm text-muted-foreground">
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  <span>Dual Gemini API keys with automatic fallback</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  <span>Better conversation history with visible backgrounds</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  <span>Automatic image compression (85% size reduction)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
-                  <span>Fixed all AI provider configuration issues</span>
-                </li>
-              </ul>
             </div>
           </div>
 
