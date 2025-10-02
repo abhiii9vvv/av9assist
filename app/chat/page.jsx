@@ -1346,17 +1346,6 @@ export default function ChatPage() {
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <Link href="/admin">
-              <Button
-                variant="default"
-                size="sm"
-                className="min-h-[44px] px-3 sm:px-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white font-semibold shadow-lg"
-                title="Admin Panel"
-              >
-                <Settings className="w-4 h-4 mr-1.5" />
-                <span className="text-xs sm:text-sm">Admin</span>
-              </Button>
-            </Link>
             <Button
               variant="ghost"
               size="sm"

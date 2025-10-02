@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Bot, ArrowRight, Sparkles } from "lucide-react"
+import { Bot, ArrowRight, Sparkles, Settings } from "lucide-react"
 
 const DynamicThemeToggle = dynamic(
   () => import("@/components/theme-toggle").then(mod => ({ default: mod.ThemeToggle })),
@@ -69,7 +69,19 @@ export default function LandingPage() {
             </div>
             <span className="text-lg font-semibold">av9Assist</span>
           </div>
-          <DynamicThemeToggle />
+          <div className="flex items-center gap-2">
+            <Link href="/admin">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                <span>Admin</span>
+              </Button>
+            </Link>
+            <DynamicThemeToggle />
+          </div>
         </div>
       </header>
 
