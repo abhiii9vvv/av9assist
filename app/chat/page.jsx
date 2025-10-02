@@ -184,8 +184,11 @@ export default function ChatPage() {
 
   // Handle navbar hide/show on scroll
   useEffect(() => {
+    const scrollContainer = document.getElementById('chat-scroll-area')
+    if (!scrollContainer) return
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
+      const currentScrollY = scrollContainer.scrollTop
       
       // Show navbar when scrolling up, hide when scrolling down
       if (currentScrollY < lastScrollY || currentScrollY < 50) {
@@ -197,8 +200,8 @@ export default function ChatPage() {
       setLastScrollY(currentScrollY)
     }
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
+    return () => scrollContainer.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
 
   // Handle privacy notice acceptance
