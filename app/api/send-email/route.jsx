@@ -568,8 +568,11 @@ export async function GET(request) {
     const type = searchParams.get('type')
     const adminKey = searchParams.get('adminKey')
 
+    console.log(`📧 Broadcast email request: type=${type}, hasAdminKey=${!!adminKey}`)
+
     // Simple admin authentication (replace with proper auth later)
     if (adminKey !== process.env.ADMIN_KEY) {
+      console.error('❌ Unauthorized broadcast attempt')
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -577,13 +580,29 @@ export async function GET(request) {
     }
 
     if (!type || !['welcome', 'update', 'engagement', 'daily'].includes(type)) {
+      console.error(`❌ Invalid email type: ${type}`)
       return NextResponse.json(
         { error: 'Valid email type required' },
         { status: 400 }
       )
     }
 
+    console.log(`📊 Fetching users from database...`)
     const users = await getAllUsers()
+    console.log(`📊 Found ${users.length} users in database`)
+    
+    if (users.length === 0) {
+      console.log('⚠️ No users found in database')
+      return NextResponse.json({
+        success: false,
+        message: 'No users found in database',
+        sent: 0,
+        failed: 0,
+        total: 0,
+        results: []
+      })
+    }
+
     const results = []
     let sent = 0
     let failed = 0
@@ -636,16 +655,20 @@ export async function GET(request) {
         sent++
         results.push({ email: user.email, status: 'sent', type: emailType })
       } catch (error) {
+        console.error(`❌ Failed to send email to ${user.email}:`, error.message)
         failed++
         results.push({ email: user.email, status: 'failed', error: error.message })
       }
     }
 
+    console.log(`📧 Broadcast summary: ${sent} sent, ${failed} failed out of ${users.length} total users`)
+
     return NextResponse.json({
-      success: true,
+      success: sent > 0, // Only success if at least one email sent
       message: `Broadcast complete: ${sent} sent, ${failed} failed`,
       sent,
       failed,
+      total: users.length,
       results
     })
   } catch (error) {
