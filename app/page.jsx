@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
-import { Sparkles, Zap, Shield, ArrowRight, Image, Rocket, CheckCircle2, Settings } from "lucide-react"
+import { Bot, Zap, Shield, ArrowRight, Image, Rocket, CheckCircle2, Settings } from "lucide-react"
 import { useRenderTime } from "@/components/performance-monitor"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { Logo } from "@/components/optimized-image"
@@ -104,7 +104,7 @@ export default function LandingPage() {
           <div className="flex justify-between items-center h-16 lg:h-20">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Sparkles className="w-6 h-6 text-white" />
+                <Bot className="w-6 h-6 text-white" />
               </div>
               <div>
                 <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -135,7 +135,7 @@ export default function LandingPage() {
             <StaggerItem className="space-y-6 lg:space-y-8">
               <FadeTransition delay={0.1}>
                 <Badge variant="secondary" className="px-4 py-2 text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0">
-                  <Sparkles className="w-4 h-4 mr-2" />
+                  <Bot className="w-4 h-4 mr-2" />
                   Next-Generation AI Assistant
                 </Badge>
               </FadeTransition>
@@ -203,7 +203,7 @@ export default function LandingPage() {
                 <Card className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-2 border-gray-200/50 dark:border-gray-800/50 shadow-2xl">
                   <CardHeader className="text-center space-y-2 pb-6">
                     <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg mb-2">
-                      <Sparkles className="w-8 h-8 text-white" />
+                      <Bot className="w-8 h-8 text-white" />
                     </div>
                     <CardTitle className="text-2xl lg:text-3xl font-bold">Get Started Free</CardTitle>
                     <CardDescription className="text-base">
@@ -333,7 +333,7 @@ export default function LandingPage() {
                   <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-2 border-gray-200/50 dark:border-gray-800/50 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl">
                     <CardContent className="p-6 text-center space-y-4">
                       <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
-                        <Sparkles className="w-7 h-7 text-white" />
+                        <Bot className="w-7 h-7 text-white" />
                       </div>
                       <h3 className="text-xl font-bold">Smart & Adaptive AI</h3>
                       <p className="text-muted-foreground leading-relaxed">
@@ -440,7 +440,7 @@ export default function LandingPage() {
 
             <div className="flex items-start gap-3 p-3 rounded-lg bg-card/50 backdrop-blur-sm border border-accent/10">
               <div className="shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center mt-0.5">
-                <Sparkles className="w-4 h-4 text-accent" />
+                <Bot className="w-4 h-4 text-accent" />
               </div>
               <div>
                 <p className="text-sm leading-relaxed">
