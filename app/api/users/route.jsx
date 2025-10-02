@@ -45,6 +45,7 @@ export async function POST(request) {
 
     const users = await readUsers()
     const existingUserIndex = users.findIndex(u => u.email === email)
+    const isNewUser = existingUserIndex < 0
 
     if (existingUserIndex >= 0) {
       // Update last active
@@ -60,16 +61,40 @@ export async function POST(request) {
         emailPreferences: {
           updates: true,
           tips: true,
-          engagement: true
+          engagement: true,
+          daily: true
         }
       })
     }
 
     await writeUsers(users)
 
+    // Send welcome email to new users
+    if (isNewUser) {
+      try {
+        // Send welcome email asynchronously (don't wait for it)
+        fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/send-email`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'welcome',
+            email: email
+          })
+        }).catch(err => {
+          console.error('Failed to send welcome email:', err)
+        })
+        
+        console.log(`🎉 New user registered: ${email} - Welcome email queued`)
+      } catch (emailError) {
+        console.error('Error queueing welcome email:', emailError)
+        // Don't fail registration if email fails
+      }
+    }
+
     return NextResponse.json({
       success: true,
       message: existingUserIndex >= 0 ? 'Welcome back!' : 'Registration successful!',
+      isNewUser,
       user: users[existingUserIndex >= 0 ? existingUserIndex : users.length - 1]
     })
   } catch (error) {
