@@ -92,7 +92,20 @@ export default function LandingPage() {
           {/* Icon */}
           <div className="flex justify-center">
             <div className="w-20 h-20 bg-gradient-to-br from-purple-500/10 to-cyan-500/10 rounded-2xl flex items-center justify-center border-2 border-purple-500/30 shadow-lg">
-              <Bot className="w-12 h-12 text-purple-600 dark:text-purple-400" />
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="56" height="56">
+                <defs>
+                  <linearGradient id="av9-gradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#7c3aed"/>
+                    <stop offset="100%" stopColor="#06b6d4"/>
+                  </linearGradient>
+                </defs>
+                <rect width="64" height="64" rx="14" fill="#0b1020" fillOpacity="0.5"/>
+                <g fill="none" stroke="url(#av9-gradient)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 40 L24 20 L36 40"/>
+                  <path d="M40 20 L52 20 L46 28 L52 40 L38 40"/>
+                </g>
+                <circle cx="32" cy="32" r="30" fill="none" stroke="url(#av9-gradient)" strokeOpacity="0.25"/>
+              </svg>
             </div>
           </div>
 
