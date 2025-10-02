@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
-import { Sparkles, Zap, Shield, ArrowRight, Image, Rocket, CheckCircle2 } from "lucide-react"
+import { Sparkles, Zap, Shield, ArrowRight, Image, Rocket, CheckCircle2, Settings } from "lucide-react"
 import { useRenderTime } from "@/components/performance-monitor"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { Logo } from "@/components/optimized-image"
@@ -28,9 +28,10 @@ export default function LandingPage() {
   // Performance monitoring
   useRenderTime('LandingPage')
   
-  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showVersionPopup, setShowVersionPopup] = useState(false)
+  const [emailError, setEmailError] = useState("")
   const router = useRouter()
 
   // Check if user has seen version 1.1 popup
@@ -56,15 +57,39 @@ export default function LandingPage() {
   }, [router])
 
   const handleStartChat = async () => {
-    if (!name.trim()) return
+    if (!email.trim()) return
+
+    // Validate email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email.trim())) {
+      setEmailError("Please enter a valid email address")
+      return
+    }
 
     setIsLoading(true)
-    // Store user name in localStorage for personalization
-    localStorage.setItem("av9assist_user_name", name.trim())
+    setEmailError("")
+    
+    try {
+      // Save user email to database
+      await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim() })
+      })
+      
+      // Store user email in localStorage
+      localStorage.setItem("av9assist_user_email", email.trim())
+      localStorage.setItem("av9assist_user_registered", new Date().toISOString())
 
-    // Simulate brief loading for smooth transition
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    router.push("/chat")
+      // Simulate brief loading for smooth transition
+      await new Promise((resolve) => setTimeout(resolve, 800))
+      router.push("/chat")
+    } catch (error) {
+      console.error("Registration error:", error)
+      // Continue to chat even if registration fails
+      localStorage.setItem("av9assist_user_email", email.trim())
+      router.push("/chat")
+    }
   }
 
   const handleSkipLogin = async () => {
@@ -82,7 +107,13 @@ export default function LandingPage() {
           <Logo className="shrink-0" />
           <span className="text-lg sm:text-xl font-bold text-foreground truncate">av9Assist</span>
         </div>
-        <div className="shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
+          <Link href="/admin">
+            <Button variant="outline" size="sm" className="gap-2">
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </Button>
+          </Link>
           <DynamicThemeToggle />
         </div>
       </header>
@@ -114,26 +145,37 @@ export default function LandingPage() {
                 <CardHeader className="text-center pb-3 sm:pb-4 lg:pb-6 px-4 sm:px-6">
                   <CardTitle className="text-lg sm:text-xl lg:text-2xl">Get Started</CardTitle>
                   <CardDescription className="text-sm sm:text-base">
-                    Enter your name (optional)
+                    Enter your email to unlock personalized features
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
                   <div className="space-y-2">
                     <Input
-                      type="text"
-                      placeholder="Enter your name..."
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      type="email"
+                      placeholder="your.email@example.com"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value)
+                        setEmailError("")
+                      }}
                       onKeyDown={(e) => e.key === "Enter" && handleStartChat()}
-                      className="text-center text-sm sm:text-base lg:text-lg py-2.5 sm:py-3 min-h-[44px] transition-all duration-300 focus:scale-[1.02] sm:focus:scale-105"
+                      className={`text-center text-sm sm:text-base lg:text-lg py-2.5 sm:py-3 min-h-[44px] transition-all duration-300 focus:scale-[1.02] sm:focus:scale-105 ${
+                        emailError ? "border-destructive" : ""
+                      }`}
                       disabled={isLoading}
+                      required
                     />
+                    {emailError && (
+                      <p className="text-sm text-destructive text-center animate-fade-in">
+                        {emailError}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2 sm:space-y-3">
                     <ScaleTransition whileHover={true} whileTap={true}>
                       <Button
-                        onClick={name.trim() ? handleStartChat : handleSkipLogin}
+                        onClick={email.trim() ? handleStartChat : handleSkipLogin}
                         disabled={isLoading}
                         className="w-full py-4 sm:py-5 text-lg sm:text-xl font-medium transition-all duration-300 min-h-[56px] sm:min-h-[64px]"
                         size="lg"
@@ -224,7 +266,7 @@ export default function LandingPage() {
                 v1.1
               </Badge>
             </div>
-            <DialogTitle className="text-2xl">✨ What's New!</DialogTitle>
+            <DialogTitle className="text-2xl">What's New!</DialogTitle>
             <DialogDescription className="text-base">
               We've added some exciting new features
             </DialogDescription>
@@ -237,7 +279,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <p className="text-sm leading-relaxed">
-                  <span className="font-semibold">🖼️ Image Upload:</span> Now you can upload images and get AI-powered analysis and descriptions
+                  <span className="font-semibold">Image Upload:</span> Now you can upload images and get AI-powered analysis and descriptions
                 </p>
               </div>
             </div>
@@ -248,7 +290,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <p className="text-sm leading-relaxed">
-                  <span className="font-semibold">⚡ Faster Responses:</span> Improved performance with optimized AI processing for quicker answers
+                  <span className="font-semibold">Faster Responses:</span> Improved performance with optimized AI processing for quicker answers
                 </p>
               </div>
             </div>
@@ -259,7 +301,7 @@ export default function LandingPage() {
               </div>
               <div>
                 <p className="text-sm leading-relaxed">
-                  <span className="font-semibold">🎨 UI Improvements:</span> Beautiful new design with smooth animations and enhanced dark mode
+                  <span className="font-semibold">UI Improvements:</span> Beautiful new design with smooth animations and enhanced dark mode
                 </p>
               </div>
             </div>
@@ -267,7 +309,7 @@ export default function LandingPage() {
 
           <DialogFooter>
             <Button onClick={handleCloseVersionPopup} className="w-full" size="lg">
-              Got it, Let's Chat! 🚀
+              Got it, Let's Chat!
             </Button>
           </DialogFooter>
         </DialogContent>

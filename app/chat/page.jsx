@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,7 +10,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
-import { Send, ArrowLeft, Mic, AlertCircle, History as HistoryIcon, Trash2, ChevronDown, StopCircle, Plus, Download, FileText, Star, X, Bold, Italic, Code, Keyboard, BarChart, MessageSquare, Search, HelpCircle, Lock, Database, Shield, Sparkles, Image as ImageIcon } from "lucide-react"
+import { Send, ArrowLeft, Mic, AlertCircle, History as HistoryIcon, Trash2, ChevronDown, StopCircle, Plus, Download, FileText, Star, X, Bold, Italic, Code, Keyboard, BarChart, MessageSquare, Search, HelpCircle, Lock, Database, Shield, Sparkles, Image as ImageIcon, Settings } from "lucide-react"
 import { sendMessage, ApiError } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -54,7 +55,7 @@ export default function ChatPage() {
   const [inputValue, setInputValue] = useState("")
   const [isInitialLoading, setIsInitialLoading] = useState(true)
   const [isConversationLoading, setIsConversationLoading] = useState(false)
-  const [userName, setUserName] = useState("")
+  const [userEmail, setUserEmail] = useState("")
   const [conversationId, setConversationId] = useState("")
   const [error, setError] = useState("")
   const [historyOpen, setHistoryOpen] = useState(false)
@@ -88,8 +89,11 @@ export default function ChatPage() {
 
   useEffect(() => {
     setIsInitialLoading(true)
-    // Get user name from localStorage
-    const storedName = localStorage.getItem("av9assist_user_name")
+    // Get user email from localStorage
+    const storedEmail = localStorage.getItem("av9assist_user_email")
+    if (storedEmail) {
+      setUserEmail(storedEmail)
+    }
     
     // Try to restore last active conversation
     const lastConversationId = localStorage.getItem("av9assist_last_conversation_id")
@@ -115,10 +119,10 @@ export default function ChatPage() {
     }
     
     // Show welcome message only if no conversation was restored
-    if (storedName) {
+    if (storedEmail) {
       const welcomeMessage = {
         id: "welcome",
-        content: `Hello ${storedName}! I'm av9Assist, your AI-powered assistant. How can I help you today?`,
+        content: `Hello! I'm av9Assist, your AI-powered assistant. How can I help you today?`,
         sender: "ai",
         timestamp: new Date(),
       }
@@ -246,7 +250,7 @@ export default function ChatPage() {
 
     try {
       const response = await sendMessage(userMessage.content, {
-        userId: userName || undefined,
+        userId: userEmail || undefined,
         conversationId: conversationId || undefined,
         regenerate: true, // Flag to indicate this is a regeneration
       })
@@ -707,7 +711,7 @@ export default function ChatPage() {
 
     // Show appropriate status message
     if (selectedImage) {
-      setStatusMessage("🖼️ Processing image with AI (this may take 10-15 seconds)...")
+      setStatusMessage("Processing image with AI (this may take 10-15 seconds)...")
     } else {
       setStatusMessage("Sending message...")
     }
@@ -754,7 +758,7 @@ export default function ChatPage() {
 
     try {
       const response = await sendMessage(userMessage.content || "What's in this image?", {
-        userId: userName || undefined,
+        userId: userEmail || undefined,
         conversationId: conversationId || undefined,
         signal: controller.signal, // Pass abort signal
         image: selectedImage,
@@ -833,7 +837,7 @@ export default function ChatPage() {
       sendingRef.current = false
       abortControllerRef.current = null
     }
-  }, [inputValue, conversationId, userName, messages, selectedImage])
+  }, [inputValue, conversationId, userEmail, messages, selectedImage])
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -876,7 +880,7 @@ export default function ChatPage() {
 
     try {
       const response = await sendMessage(editingContent.trim(), {
-        userId: userName || undefined,
+        userId: userEmail || undefined,
         conversationId: conversationId || undefined,
         edit: true, // Flag to indicate this is an edit
       })
@@ -1375,6 +1379,16 @@ export default function ChatPage() {
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            <Link href="/admin">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="min-w-[44px] min-h-[44px]"
+                title="Admin Panel"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="sm"
@@ -1746,7 +1760,7 @@ export default function ChatPage() {
                       }}
                       className="text-xs"
                     >
-                      💬 Say Hello
+                      Say Hello
                     </Button>
                     <Button
                       variant="outline"
@@ -1768,7 +1782,7 @@ export default function ChatPage() {
                       }}
                       className="text-xs"
                     >
-                      🎯 Fun Fact
+                      Fun Fact
                     </Button>
                   </div>
                 </div>
@@ -2019,21 +2033,21 @@ export default function ChatPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-medium">💬 Conversations</h4>
+                    <h4 className="font-medium">Conversations</h4>
                     <p className="text-muted-foreground">Start new chats, browse history, and favorite important conversations.</p>
                   </div>
                   <div>
-                    <h4 className="font-medium">📝 Message Actions</h4>
+                    <h4 className="font-medium">Message Actions</h4>
                     <p className="text-muted-foreground">Reply to messages, provide feedback, regenerate responses, and copy text.</p>
                   </div>
                 </div>
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-medium">⚡ Quick Actions</h4>
+                    <h4 className="font-medium">Quick Actions</h4>
                     <p className="text-muted-foreground">Use keyboard shortcuts for faster interaction and productivity.</p>
                   </div>
                   <div>
-                    <h4 className="font-medium">📊 Analytics</h4>
+                    <h4 className="font-medium">Analytics</h4>
                     <p className="text-muted-foreground">Track your usage patterns and conversation insights.</p>
                   </div>
                 </div>
@@ -2045,12 +2059,12 @@ export default function ChatPage() {
               <div className="space-y-2 text-sm">
                 <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                   <p className="text-blue-800 dark:text-blue-200">
-                    💡 <strong>Pro tip:</strong> Use Shift+Enter for new lines in your messages. Press Enter alone to send.
+                    <strong>Pro tip:</strong> Use Shift+Enter for new lines in your messages. Press Enter alone to send.
                   </p>
                 </div>
                 <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
                   <p className="text-green-800 dark:text-green-200">
-                    🎯 <strong>Be specific:</strong> The more detailed your questions, the better the AI can help you.
+                    <strong>Be specific:</strong> The more detailed your questions, the better the AI can help you.
                   </p>
                 </div>
                 <div className="p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
@@ -2066,3 +2080,5 @@ export default function ChatPage() {
     </div>
   )
 }
+
+
