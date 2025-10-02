@@ -93,6 +93,10 @@ export default function ChatPage() {
     const storedEmail = localStorage.getItem("av9assist_user_email")
     if (storedEmail) {
       setUserEmail(storedEmail)
+    } else {
+      // Redirect to homepage if no email found
+      router.push("/")
+      return
     }
     
     // Try to restore last active conversation

@@ -57,7 +57,11 @@ export default function LandingPage() {
   }, [router])
 
   const handleStartChat = async () => {
-    if (!email.trim()) return
+    // Require email - no skipping allowed
+    if (!email.trim()) {
+      setEmailError("Email is required to start chatting")
+      return
+    }
 
     // Validate email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -92,161 +96,300 @@ export default function LandingPage() {
     }
   }
 
-  const handleSkipLogin = async () => {
-    setIsLoading(true)
-    // small delay to ensure overlay paints before navigation
-    await new Promise((r) => setTimeout(r, 150))
-    router.push("/chat")
-  }
-
   return (
-    <div className="min-h-[100dvh] bg-background overflow-x-hidden">
+    <div className="min-h-[100dvh] bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-blue-950/20 dark:to-indigo-950/20 overflow-x-hidden">
       {/* Header */}
-      <header className="flex justify-between items-center p-3 sm:p-4 lg:p-6 sticky top-0 z-10 glass-card">
-        <div className="flex items-center gap-2 min-w-0">
-          <Logo className="shrink-0" />
-          <span className="text-lg sm:text-xl font-bold text-foreground truncate">av9Assist</span>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Link href="/admin">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Admin</span>
-            </Button>
-          </Link>
-          <DynamicThemeToggle />
+      <header className="backdrop-blur-xl bg-white/70 dark:bg-gray-950/70 border-b border-gray-200/50 dark:border-gray-800/50 sticky top-0 z-50 shadow-sm">
+        <div className="container mx-auto px-4 lg:px-6">
+          <div className="flex justify-between items-center h-16 lg:h-20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Sparkles className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  av9Assist
+                </span>
+                <p className="text-xs text-muted-foreground hidden sm:block">AI-Powered Assistant</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link href="/admin">
+                <Button variant="ghost" size="sm" className="gap-2 hover:bg-blue-100 dark:hover:bg-blue-900/30">
+                  <Settings className="w-4 h-4" />
+                  <span className="hidden sm:inline">Admin</span>
+                </Button>
+              </Link>
+              <DynamicThemeToggle />
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="container mx-auto px-3 sm:px-4 lg:px-6 py-6 sm:py-8 lg:py-12">
-        <StaggerContainer className="max-w-4xl mx-auto text-center space-y-4 sm:space-y-6 lg:space-y-8">{/* Hero Content */}
-          <StaggerItem className="space-y-4 sm:space-y-6">
-            <FadeTransition delay={0.2}>
-              <Badge variant="secondary" className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium">
-                <Sparkles className="w-3 sm:w-4 h-3 sm:h-4 mr-1.5 sm:mr-2" />
-                AI-Powered Assistant
-              </Badge>
-            </FadeTransition>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 lg:px-6 py-8 sm:py-12 lg:py-16">
+        <div className="max-w-6xl mx-auto">
+          <StaggerContainer className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            
+            {/* Left Column - Hero Content */}
+            <StaggerItem className="space-y-6 lg:space-y-8">
+              <FadeTransition delay={0.1}>
+                <Badge variant="secondary" className="px-4 py-2 text-sm font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border-0">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Next-Generation AI Assistant
+                </Badge>
+              </FadeTransition>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-balance leading-tight">
-              Welcome to <span className="text-primary">av9Assist</span>
-            </h1>
+              <div className="space-y-4">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-tight">
+                  <span className="block text-foreground">Your Personal</span>
+                  <span className="block bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    AI Assistant
+                  </span>
+                </h1>
 
-            <p className="text-lg sm:text-xl text-muted-foreground text-pretty max-w-xl mx-auto leading-relaxed px-2 sm:px-0">
-              Your AI-powered assistant for instant help and creative solutions.
-            </p>
-          </StaggerItem>
+                <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-xl">
+                  Experience the power of advanced AI technology. Get instant answers, creative solutions, and intelligent assistance for any task.
+                </p>
+              </div>
 
-          {/* Name Input Card */}
-          <StaggerItem>
-            <ScaleTransition>
-              <Card className="max-w-md mx-3 sm:mx-auto glass-strong border-0">
-                <CardHeader className="text-center pb-3 sm:pb-4 lg:pb-6 px-4 sm:px-6">
-                  <CardTitle className="text-lg sm:text-xl lg:text-2xl">Get Started</CardTitle>
-                  <CardDescription className="text-sm sm:text-base">
-                    Enter your email to unlock personalized features
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3 sm:space-y-4 px-4 sm:px-6">
-                  <div className="space-y-2">
-                    <Input
-                      type="email"
-                      placeholder="your.email@example.com"
-                      value={email}
-                      onChange={(e) => {
-                        setEmail(e.target.value)
-                        setEmailError("")
-                      }}
-                      onKeyDown={(e) => e.key === "Enter" && handleStartChat()}
-                      className={`text-center text-sm sm:text-base lg:text-lg py-2.5 sm:py-3 min-h-[44px] transition-all duration-300 focus:scale-[1.02] sm:focus:scale-105 ${
-                        emailError ? "border-destructive" : ""
-                      }`}
-                      disabled={isLoading}
-                      required
-                    />
-                    {emailError && (
-                      <p className="text-sm text-destructive text-center animate-fade-in">
-                        {emailError}
-                      </p>
-                    )}
+              {/* Feature Highlights */}
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-white/50 dark:bg-gray-900/50 border border-gray-200/50 dark:border-gray-800/50">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-white" />
                   </div>
+                  <div>
+                    <p className="font-semibold text-sm">Fast</p>
+                    <p className="text-xs text-muted-foreground">Instant replies</p>
+                  </div>
+                </div>
 
-                  <div className="space-y-2 sm:space-y-3">
-                    <ScaleTransition whileHover={true} whileTap={true}>
-                      <Button
-                        onClick={email.trim() ? handleStartChat : handleSkipLogin}
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-white/50 dark:bg-gray-900/50 border border-gray-200/50 dark:border-gray-800/50">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Secure</p>
+                    <p className="text-xs text-muted-foreground">Private & safe</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-white/50 dark:bg-gray-900/50 border border-gray-200/50 dark:border-gray-800/50">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">Smart</p>
+                    <p className="text-xs text-muted-foreground">AI-powered</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-white/50 dark:bg-gray-900/50 border border-gray-200/50 dark:border-gray-800/50">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                    <Rocket className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm">24/7</p>
+                    <p className="text-xs text-muted-foreground">Always ready</p>
+                  </div>
+                </div>
+              </div>
+            </StaggerItem>
+
+            {/* Right Column - Email Input Card */}
+            <StaggerItem>
+              <ScaleTransition>
+                <Card className="backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 border-2 border-gray-200/50 dark:border-gray-800/50 shadow-2xl">
+                  <CardHeader className="text-center space-y-2 pb-6">
+                    <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg mb-2">
+                      <Sparkles className="w-8 h-8 text-white" />
+                    </div>
+                    <CardTitle className="text-2xl lg:text-3xl font-bold">Get Started Free</CardTitle>
+                    <CardDescription className="text-base">
+                      Enter your email to begin your AI journey
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-5 px-6 pb-6">
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium text-foreground block">
+                        Email Address <span className="text-red-500">*</span>
+                      </label>
+                      <Input
+                        id="email"
+                        type="email"
+                        placeholder="your.email@example.com"
+                        value={email}
+                        onChange={(e) => {
+                          setEmail(e.target.value)
+                          setEmailError("")
+                        }}
+                        onKeyDown={(e) => e.key === "Enter" && handleStartChat()}
+                        className={`h-12 text-base transition-all duration-300 focus:scale-[1.01] ${
+                          emailError ? "border-red-500 focus:border-red-500" : ""
+                        }`}
                         disabled={isLoading}
-                        className="w-full py-4 sm:py-5 text-lg sm:text-xl font-medium transition-all duration-300 min-h-[56px] sm:min-h-[64px]"
-                        size="lg"
-                      >
-                        {isLoading ? (
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                            Starting...
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            Start Chatting
-                            <ArrowRight className="w-5 h-5" />
-                          </div>
-                        )}
-                      </Button>
-                    </ScaleTransition>
-                  </div>
-                </CardContent>
-              </Card>
-            </ScaleTransition>
-          </StaggerItem>
+                        required
+                      />
+                      {emailError && (
+                        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 animate-fade-in">
+                          <AlertCircle className="w-4 h-4" />
+                          <span>{emailError}</span>
+                        </div>
+                      )}
+                    </div>
 
-          {/* Features Grid */}
+                    <div className="space-y-3">
+                      <ScaleTransition whileHover={true} whileTap={true}>
+                        <Button
+                          onClick={handleStartChat}
+                          disabled={isLoading || !email.trim()}
+                          className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                          size="lg"
+                        >
+                          {isLoading ? (
+                            <div className="flex items-center gap-2">
+                              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                              Launching...
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              Start Chatting Now
+                              <ArrowRight className="w-5 h-5" />
+                            </div>
+                          )}
+                        </Button>
+                      </ScaleTransition>
+                      
+                      <div className="flex items-center gap-2 text-xs text-center text-muted-foreground justify-center">
+                        <Shield className="w-3 h-3" />
+                        <span>Your email is secure and will never be shared</span>
+                      </div>
+                    </div>
+
+                    {/* Trust Badges */}
+                    <div className="pt-4 border-t border-gray-200/50 dark:border-gray-800/50">
+                      <div className="grid grid-cols-3 gap-2 text-center">
+                        <div className="space-y-1">
+                          <p className="text-2xl font-bold text-foreground">24/7</p>
+                          <p className="text-xs text-muted-foreground">Support</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-2xl font-bold text-foreground">100%</p>
+                          <p className="text-xs text-muted-foreground">Secure</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-2xl font-bold text-foreground">Free</p>
+                          <p className="text-xs text-muted-foreground">Forever</p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </ScaleTransition>
+            </StaggerItem>
+          </StaggerContainer>
+
+          {/* Features Section */}
           <StaggerItem>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 mt-8 sm:mt-12 lg:mt-16 px-3 sm:px-4 lg:px-0">
-              <ScaleTransition>
-                <Card className="border-0 glass-card hover:surface-elevated transition-all duration-300">
-                  <CardContent className="p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 lg:space-y-4">
-                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto">
-                      <Zap className="w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 text-primary-foreground" />
-                    </div>
-                    <h3 className="text-base sm:text-lg font-semibold">Lightning Fast</h3>
-                    <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
-                      Instant AI responses
-                    </p>
-                  </CardContent>
-                </Card>
-              </ScaleTransition>
+            <div className="mt-16 lg:mt-24">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl lg:text-4xl font-bold mb-4">Powerful Features</h2>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                  Everything you need in an AI assistant, all in one place
+                </p>
+              </div>
 
-              <ScaleTransition>
-                <Card className="border-0 glass-card hover:surface-elevated transition-all duration-300">
-                  <CardContent className="p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 lg:space-y-4">
-                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-gradient-secondary rounded-full flex items-center justify-center mx-auto">
-                      <Shield className="w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 text-primary" />
-                    </div>
-                    <h3 className="text-sm sm:text-base lg:text-lg font-semibold">Secure & Private</h3>
-                    <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
-                      Enterprise-grade security
-                    </p>
-                  </CardContent>
-                </Card>
-              </ScaleTransition>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <ScaleTransition>
+                  <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-2 border-gray-200/50 dark:border-gray-800/50 hover:border-blue-500/50 transition-all duration-300 hover:shadow-xl">
+                    <CardContent className="p-6 text-center space-y-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                        <Zap className="w-7 h-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold">Lightning Fast Responses</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Get instant AI-powered answers to all your questions in milliseconds
+                      </p>
+                    </CardContent>
+                  </Card>
+                </ScaleTransition>
 
-              <ScaleTransition>
-                <Card className="border-0 glass-card hover:surface-elevated transition-all duration-300 sm:col-span-2 lg:col-span-1">
-                  <CardContent className="p-3 sm:p-4 lg:p-6 text-center space-y-2 sm:space-y-3 lg:space-y-4">
-                    <div className="w-8 sm:w-10 lg:w-12 h-8 sm:h-10 lg:h-12 bg-gradient-accent rounded-full flex items-center justify-center mx-auto">
-                      <Sparkles className="w-4 sm:w-5 lg:w-6 h-4 sm:h-5 lg:h-6 text-primary" />
-                    </div>
-                    <h3 className="text-sm sm:text-base lg:text-lg font-semibold">Smart & Adaptive</h3>
-                    <p className="text-muted-foreground text-xs sm:text-sm leading-relaxed">
-                      Learns your style
-                    </p>
-                  </CardContent>
-                </Card>
-              </ScaleTransition>
+                <ScaleTransition>
+                  <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-2 border-gray-200/50 dark:border-gray-800/50 hover:border-purple-500/50 transition-all duration-300 hover:shadow-xl">
+                    <CardContent className="p-6 text-center space-y-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                        <Shield className="w-7 h-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold">Enterprise-Grade Security</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Your conversations are encrypted and completely private
+                      </p>
+                    </CardContent>
+                  </Card>
+                </ScaleTransition>
+
+                <ScaleTransition>
+                  <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-2 border-gray-200/50 dark:border-gray-800/50 hover:border-indigo-500/50 transition-all duration-300 hover:shadow-xl">
+                    <CardContent className="p-6 text-center space-y-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                        <Sparkles className="w-7 h-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold">Smart & Adaptive AI</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Our AI learns from context to provide personalized responses
+                      </p>
+                    </CardContent>
+                  </Card>
+                </ScaleTransition>
+
+                <ScaleTransition>
+                  <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-2 border-gray-200/50 dark:border-gray-800/50 hover:border-green-500/50 transition-all duration-300 hover:shadow-xl">
+                    <CardContent className="p-6 text-center space-y-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                        <Image className="w-7 h-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold">Image Analysis</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Upload images and get detailed AI-powered analysis and insights
+                      </p>
+                    </CardContent>
+                  </Card>
+                </ScaleTransition>
+
+                <ScaleTransition>
+                  <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-2 border-gray-200/50 dark:border-gray-800/50 hover:border-orange-500/50 transition-all duration-300 hover:shadow-xl">
+                    <CardContent className="p-6 text-center space-y-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                        <Rocket className="w-7 h-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold">Always Available</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Access your AI assistant 24/7, whenever you need help
+                      </p>
+                    </CardContent>
+                  </Card>
+                </ScaleTransition>
+
+                <ScaleTransition>
+                  <Card className="backdrop-blur-xl bg-white/70 dark:bg-gray-900/70 border-2 border-gray-200/50 dark:border-gray-800/50 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-xl">
+                    <CardContent className="p-6 text-center space-y-4">
+                      <div className="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+                        <CheckCircle2 className="w-7 h-7 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold">Free to Use</h3>
+                      <p className="text-muted-foreground leading-relaxed">
+                        No hidden fees, no subscriptions - completely free forever
+                      </p>
+                    </CardContent>
+                  </Card>
+                </ScaleTransition>
+              </div>
             </div>
           </StaggerItem>
-        </StaggerContainer>
+        </div>
       </main>
+      
       {isLoading && (
         <div className="fixed inset-0 z-[200] bg-background/80 backdrop-blur-sm flex items-center justify-center">
           <div className="text-center space-y-3">
