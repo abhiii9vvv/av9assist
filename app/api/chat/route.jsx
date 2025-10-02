@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server"
 const AIProvider = require("@/lib/ai-provider")
-import autoFormatResponse from "@/lib/auto-format"
-
-
 
 // Canonical personal name for static responses
 const CANONICAL_NAME = 'ABHINAV TIWARY'
@@ -158,8 +155,8 @@ export async function POST(request) {
 
     // Generate AI response with context (including image if present)
   const aiRaw = await generateAIResponseFastFirst(body.message, body.userId, [...systemDirectives, ...recentContext], imageData)
-  // For prompt/code requests return raw; otherwise apply friendly auto-format
-  const aiResponse = (promptRequest || codeIntent) ? aiRaw : autoFormatResponse(aiRaw)
+  // Return raw AI response without any formatting
+  const aiResponse = aiRaw
   
   // Debug: Log what we're actually sending
   console.log('=== AI Response Debug ===');
@@ -449,71 +446,6 @@ function looksLikePromptRequest(text) {
   return false
 }
 
-// Automatically format AI response to ensure proper markdown structure
-function formatAIResponse(response) {
-  if (!response || typeof response !== 'string') return response
-  
-  let formatted = response.trim()
-  
-  // Step 1: Detect if response is a list-like answer (multiple points)
-  const hasMultiplePoints = formatted.includes('-') || formatted.includes('•') || 
-                            /\d+\.\s/.test(formatted) || formatted.split('.').length > 3
-  
-  // Step 2: Split into sentences/lines
-  let lines = formatted.split(/\n+/)
-  
-  // Step 3: Process each line
-  const processedLines = lines.map((line, idx) => {
-    line = line.trim()
-    if (!line) return ''
-    
-    // If line starts with a dash or bullet, ensure proper formatting
-    if (line.match(/^[-•*]\s*/)) {
-      // Already a bullet point, clean it up
-      return line.replace(/^[-•*]\s*/, '- ')
-    }
-    
-    // If line starts with number (1. 2. etc), convert to bullet
-    if (line.match(/^\d+\.\s+/)) {
-      return line.replace(/^\d+\.\s+/, '- ')
-    }
-    
-    // If this looks like a list item (sentence ending with period/colon after intro)
-    if (idx > 0 && hasMultiplePoints && line.length < 200 && !line.startsWith('#')) {
-      // Check if previous line was intro text
-      const prevLine = lines[idx - 1]?.trim()
-      if (prevLine && (prevLine.endsWith(':') || prevLine.toLowerCase().includes('here are') || 
-          prevLine.toLowerCase().includes('following') || prevLine.toLowerCase().includes('points') ||
-          prevLine.toLowerCase().includes('bullet'))) {
-        return `- ${line}`
-      }
-    }
-    
-    return line
-  })
-  
-  // Step 4: Reconstruct with proper spacing
-  let result = []
-  let lastWasBullet = false
-  
-  for (let i = 0; i < processedLines.length; i++) {
-    const line = processedLines[i]
-    if (!line) continue
-    
-    const isBullet = line.startsWith('-')
-    
-    // Add spacing before bullet lists
-    if (isBullet && !lastWasBullet && result.length > 0) {
-      result.push('') // blank line before list
-    }
-    
-    result.push(line)
-    lastWasBullet = isBullet
-  }
-  
-  return result.join('\n')
-}
-
 async function generateAIResponseLegacy(userMessage, userId) {
   try {
     const aiProvider = new AIProvider()
@@ -530,7 +462,7 @@ async function generateAIResponseLegacy(userMessage, userId) {
 
     if (result.success) {
       console.log(`[v0] AI response generated using ${result.provider}`)
-      return formatAIResponse(result.response)
+      return result.response
     } else {
       console.error("[v0] All AI providers failed:", result.error)
       return result.response // This contains the fallback message
@@ -573,14 +505,14 @@ async function generateAIResponseFastFirst(userMessage, userId, contextFromRoute
     const fast = await aiProvider.getAIResponseFast(userMessage, null, context, { timeoutMs, imageData })
     if (fast && fast.success) {
       console.log(`[v1] Fast AI response using ${fast.provider}`)
-      return formatAIResponse(fast.response)
+      return fast.response
     }
 
     // Fallback to legacy sequential approach
     const result = await aiProvider.getAIResponse(userMessage, null, context, imageData)
     if (result.success) {
       console.log(`[v1] Sequential AI response using ${result.provider}`)
-      return formatAIResponse(result.response)
+      return result.response
     } else {
       console.error("[v1] All AI providers failed:", result.error)
       return result.response
