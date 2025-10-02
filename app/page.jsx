@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Bot, ArrowRight, Sparkles, Settings } from "lucide-react"
+import { Bot, ArrowRight, Settings } from "lucide-react"
 
 const DynamicThemeToggle = dynamic(
   () => import("@/components/theme-toggle").then(mod => ({ default: mod.ThemeToggle })),
@@ -91,18 +91,30 @@ export default function LandingPage() {
           
           {/* Icon */}
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-blue-500/20 rounded-2xl flex items-center justify-center border-2 border-primary/30 shadow-lg">
-              <Sparkles className="w-8 h-8 text-primary" />
+            <div className="w-20 h-20 bg-gradient-to-br from-purple-500/10 to-cyan-500/10 rounded-2xl flex items-center justify-center border-2 border-purple-500/30 shadow-lg">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="56" height="56">
+                <defs>
+                  <linearGradient id="av9-gradient" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#7c3aed"/>
+                    <stop offset="100%" stopColor="#06b6d4"/>
+                  </linearGradient>
+                </defs>
+                <g fill="none" stroke="url(#av9-gradient)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 40 L24 20 L36 40"/>
+                  <path d="M40 20 L52 20 L46 28 L52 40 L38 40"/>
+                </g>
+                <circle cx="32" cy="32" r="30" fill="none" stroke="url(#av9-gradient)" strokeOpacity="0.25"/>
+              </svg>
             </div>
           </div>
 
           {/* Heading */}
           <div className="space-y-3">
             <h1 className="text-4xl font-bold tracking-tight">
-              AI Assistant
+              av9 Assist
             </h1>
             <p className="text-muted-foreground text-lg">
-              Fast, intelligent, and always ready to help
+              Your intelligent AI companion, always ready to assist
             </p>
           </div>
 
