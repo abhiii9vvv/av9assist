@@ -1541,18 +1541,14 @@ export default function ChatPage() {
                     className="hidden"
                     aria-label="Upload image"
                   />
-                  {/* Image attachment button - Under Construction */}
+                  {/* Image attachment button */}
                   <Button
-                    onClick={() => {
-                      setError('🚧 Image upload feature is under construction! It will be available soon. Stay tuned! 🎨')
-                      setTimeout(() => setError(''), 4000)
-                    }}
+                    onClick={() => fileInputRef.current?.click()}
                     variant="ghost"
                     size="icon"
-                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 opacity-60 cursor-not-allowed"
-                    title="Image upload (Coming Soon)"
-                    aria-label="Image upload coming soon"
-                    disabled
+                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 hover:bg-accent"
+                    title="Upload image (PNG, JPG - Max 5MB)"
+                    aria-label="Upload image"
                   >
                     <ImageIcon className="w-4 h-4" />
                   </Button>
