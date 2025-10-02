@@ -64,7 +64,9 @@ const EMAIL_TEMPLATES = {
             </div>
             <div class="footer">
               <p>You're getting this because you joined av9Assist. Pretty cool, right? 😎</p>
-              <p style="margin-top: 10px;">© 2025 av9Assist - Made with ❤️ for awesome people like you</p>
+              <p style="margin-top: 10px;">Don't want these emails? <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #667eea; text-decoration: underline;">Unsubscribe here</a></p>
+              <p style="margin-top: 10px; font-size: 12px; color: #a0aec0;">av9Assist | AI Assistant Platform | <a href="mailto:${process.env.GMAIL_USER || 'support@av9assist.com'}" style="color: #667eea;">Contact Us</a></p>
+              <p style="margin-top: 5px;">© 2025 av9Assist - Made with ❤️ for awesome people like you</p>
             </div>
           </div>
         </body>
@@ -184,8 +186,10 @@ const EMAIL_TEMPLATES = {
               </p>
             </div>
             <div class="footer">
-              <p>Taking a break? No worries! <a href="#" style="color: #667eea;">Adjust your email settings</a></p>
-              <p style="margin-top: 10px;">© 2025 av9Assist - Always here when you need us! 💙</p>
+              <p>Taking a break? No worries! <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/settings" style="color: #667eea;">Adjust your email settings</a></p>
+              <p style="margin-top: 10px;">Don't want these emails? <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #667eea; text-decoration: underline;">Unsubscribe here</a></p>
+              <p style="margin-top: 10px; font-size: 12px; color: #a0aec0;">av9Assist | AI Assistant Platform | <a href="mailto:${process.env.GMAIL_USER || 'support@av9assist.com'}" style="color: #667eea;">Contact Us</a></p>
+              <p style="margin-top: 5px;">© 2025 av9Assist - Always here when you need us! 💙</p>
             </div>
           </div>
         </body>
@@ -301,8 +305,10 @@ const EMAIL_TEMPLATES = {
               </p>
             </div>
             <div class="footer">
-              <p>Want to change when you get these emails? <a href="#" style="color: #667eea;">Update your preferences</a></p>
-              <p style="margin-top: 10px;">© 2025 av9Assist - Helping you stay motivated, one day at a time! 🌟</p>
+              <p>Want to change when you get these emails? <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/settings" style="color: #667eea;">Update your preferences</a></p>
+              <p style="margin-top: 10px;">Don't want these emails? <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #667eea; text-decoration: underline;">Unsubscribe here</a></p>
+              <p style="margin-top: 10px; font-size: 12px; color: #a0aec0;">av9Assist | AI Assistant Platform | <a href="mailto:${process.env.GMAIL_USER || 'support@av9assist.com'}" style="color: #667eea;">Contact Us</a></p>
+              <p style="margin-top: 5px;">© 2025 av9Assist - Helping you stay motivated, one day at a time! 🌟</p>
             </div>
           </div>
         </body>
@@ -454,25 +460,42 @@ async function sendEmailWithGmail(to, subject, html) {
     await transporter.verify()
     console.log('Gmail SMTP server is ready to send emails')
 
-    // Email options with anti-spam headers
+    // Email options with comprehensive anti-spam headers
     const mailOptions = {
       from: {
-        name: 'av9Assist',
+        name: 'av9Assist Team',
+        address: GMAIL_USER
+      },
+      replyTo: {
+        name: 'av9Assist Support',
         address: GMAIL_USER
       },
       to: to,
       subject: subject,
       html: html,
-      // Important anti-spam headers
+      // Comprehensive anti-spam headers for better deliverability
       headers: {
-        'X-Mailer': 'av9Assist',
+        'X-Mailer': 'av9Assist Email System v1.0',
         'X-Priority': '3',
         'Importance': 'normal',
-        'List-Unsubscribe': `<mailto:${GMAIL_USER}?subject=unsubscribe>`,
-        'Precedence': 'bulk'
+        'X-MSMail-Priority': 'Normal',
+        'X-Entity-Ref-ID': `av9assist-${Date.now()}`,
+        'List-Unsubscribe': `<${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/unsubscribe?email=${encodeURIComponent(to)}>, <mailto:${GMAIL_USER}?subject=Unsubscribe>`,
+        'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        'Precedence': 'bulk',
+        'X-Auto-Response-Suppress': 'OOF, DR, RN, NRN, AutoReply',
+        'Message-ID': `<${Date.now()}.${Math.random().toString(36).substring(7)}@av9assist.com>`,
+        'Reply-To': GMAIL_USER,
+        'Return-Path': GMAIL_USER,
+        // Prevent threading issues
+        'References': `<av9assist-${Date.now()}@av9assist.com>`,
+        'In-Reply-To': null
       },
-      // Add text version for better deliverability
-      text: html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+      // Add text version for better deliverability (required by most email providers)
+      text: html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim(),
+      // Encoding
+      encoding: 'utf-8',
+      textEncoding: 'base64'
     }
 
     // Send email
