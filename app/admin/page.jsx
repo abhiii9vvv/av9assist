@@ -131,6 +131,16 @@ export default function AdminPage() {
   if (!authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900 p-4">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => router.push('/')}
+          className="absolute top-4 left-4 hover:scale-110 transition-transform"
+          title="Back to Home"
+        >
+          <Home className="h-5 w-5" />
+        </Button>
         <Card className="w-full max-w-md shadow-2xl border-2">
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mb-2">
@@ -174,11 +184,22 @@ export default function AdminPage() {
         
         {/* Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              Admin Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-1">Manage users, analytics, and email campaigns</p>
+          <div className="flex items-start gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => router.back()}
+              className="hover:scale-110 transition-transform mt-1"
+              title="Go Back"
+            >
+              <Home className="h-5 w-5" />
+            </Button>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                Admin Dashboard
+              </h1>
+              <p className="text-muted-foreground mt-1">Manage users, analytics, and email campaigns</p>
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button 
