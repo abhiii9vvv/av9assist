@@ -1314,18 +1314,31 @@ export default function ChatPage() {
             <div className="space-y-2 sm:space-y-3">
               <StaggerContainer>
                 {isConversationLoading ? (
-                  // Show skeleton loaders when loading conversation
-                  [...Array(3)].map((_, i) => (
-                    <StaggerItem key={`skeleton-${i}`}>
-                      <FadeTransition className="flex gap-3 px-0 sm:px-0">
-                        <div className="w-8 h-8 bg-muted animate-pulse rounded-full shrink-0" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-muted animate-pulse rounded w-3/4" />
-                          <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+                  // Show animated loader when loading conversation
+                  <div className="flex items-center justify-center min-h-[300px]">
+                    <div className="text-center space-y-4">
+                      {/* Animated Spinner */}
+                      <div className="relative mx-auto w-16 h-16">
+                        <div className="absolute inset-0 border-4 border-primary/30 border-t-primary rounded-full animate-spin" 
+                             style={{animationDuration: '1s'}}></div>
+                        <div className="absolute inset-2 border-4 border-blue-500/20 border-b-blue-500 rounded-full animate-spin" 
+                             style={{animationDuration: '1.5s', animationDirection: 'reverse'}}></div>
+                        <div className="absolute inset-0 m-auto w-4 h-4 bg-gradient-to-br from-primary to-blue-500 rounded-full animate-pulse"></div>
+                      </div>
+                      
+                      {/* Loading Text */}
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-foreground animate-pulse">
+                          Loading conversation...
+                        </p>
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0s'}}></span>
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
+                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
                         </div>
-                      </FadeTransition>
-                    </StaggerItem>
-                  ))
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   messages.map((message, index) => {
                     if (editingMessageId === message.id) {
@@ -1567,21 +1580,30 @@ export default function ChatPage() {
           </DrawerHeader>
           <div className="px-4 pb-2 overflow-y-auto bg-gradient-to-b from-card/20 via-card/10 to-transparent">
             {isInitialLoading ? (
-              <div className="space-y-3 py-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="bg-gradient-to-br from-card via-card/95 to-card/90 border border-border rounded-xl p-4 animate-pulse">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex-1 space-y-2">
-                        <div className="h-4 bg-gradient-to-r from-muted via-muted/60 to-muted rounded-lg w-3/4 animate-shimmer" style={{backgroundSize: '200% 100%'}}></div>
-                        <div className="h-3 bg-gradient-to-r from-muted via-muted/60 to-muted rounded-lg w-1/2 animate-shimmer" style={{backgroundSize: '200% 100%', animationDelay: '0.2s'}}></div>
-                      </div>
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <div className="w-9 h-9 bg-gradient-to-r from-muted via-muted/60 to-muted rounded-lg animate-shimmer" style={{backgroundSize: '200% 100%', animationDelay: '0.4s'}}></div>
-                        <div className="w-9 h-9 bg-gradient-to-r from-muted via-muted/60 to-muted rounded-lg animate-shimmer" style={{backgroundSize: '200% 100%', animationDelay: '0.6s'}}></div>
-                      </div>
-                    </div>
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center space-y-6">
+                  {/* Animated Spinner */}
+                  <div className="relative mx-auto w-20 h-20">
+                    {/* Outer rotating ring */}
+                    <div className="absolute inset-0 border-4 border-primary/30 border-t-primary rounded-full animate-spin" 
+                         style={{animationDuration: '1s'}}></div>
+                    {/* Middle rotating ring (opposite direction) */}
+                    <div className="absolute inset-2 border-4 border-blue-500/20 border-b-blue-500 rounded-full animate-spin" 
+                         style={{animationDuration: '1.5s', animationDirection: 'reverse'}}></div>
+                    {/* Inner pulsing dot */}
+                    <div className="absolute inset-0 m-auto w-6 h-6 bg-gradient-to-br from-primary to-blue-500 rounded-full animate-pulse"></div>
                   </div>
-                ))}
+                  
+                  {/* Loading Text */}
+                  <div className="space-y-2">
+                    <p className="text-lg font-semibold text-foreground animate-pulse">
+                      Loading your chats...
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Just a moment ✨
+                    </p>
+                  </div>
+                </div>
               </div>
             ) : filteredConversations.length === 0 ? (
               conversations.length === 0 ? (
