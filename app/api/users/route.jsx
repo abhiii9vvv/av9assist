@@ -1,35 +1,5 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
-
-const DB_FILE = path.join(process.cwd(), 'data', 'users.json')
-
-// Ensure data directory exists
-async function ensureDataDir() {
-  const dataDir = path.join(process.cwd(), 'data')
-  try {
-    await fs.access(dataDir)
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true })
-  }
-}
-
-// Read users from database
-async function readUsers() {
-  try {
-    const data = await fs.readFile(DB_FILE, 'utf-8')
-    return JSON.parse(data)
-  } catch (error) {
-    // If file doesn't exist, return empty array
-    return []
-  }
-}
-
-// Write users to database
-async function writeUsers(users) {
-  await ensureDataDir()
-  await fs.writeFile(DB_FILE, JSON.stringify(users, null, 2))
-}
+import { getAllUsers, getUser, saveUser, updateUserPreferences, getUserStats } from '@/lib/db'
 
 // POST - Register/update user
 export async function POST(request) {
@@ -43,17 +13,20 @@ export async function POST(request) {
       )
     }
 
-    const users = await readUsers()
-    const existingUserIndex = users.findIndex(u => u.email === email)
-    const isNewUser = existingUserIndex < 0
+    const existingUser = await getUser(email)
+    const isNewUser = !existingUser
 
-    if (existingUserIndex >= 0) {
+    let user
+    if (existingUser) {
       // Update last active
-      users[existingUserIndex].lastActive = new Date().toISOString()
-      users[existingUserIndex].visitCount = (users[existingUserIndex].visitCount || 1) + 1
+      user = {
+        ...existingUser,
+        lastActive: new Date().toISOString(),
+        visitCount: (existingUser.visitCount || 1) + 1
+      }
     } else {
       // Add new user
-      users.push({
+      user = {
         email,
         joinedAt: new Date().toISOString(),
         lastActive: new Date().toISOString(),
@@ -64,10 +37,11 @@ export async function POST(request) {
           engagement: true,
           daily: true
         }
-      })
+      }
     }
 
-    await writeUsers(users)
+    await saveUser(user)
+    console.log(`✅ User saved to database: ${email} (${isNewUser ? 'NEW' : 'RETURNING'})`)
 
     // Send welcome email to new users
     if (isNewUser) {
@@ -93,30 +67,28 @@ export async function POST(request) {
 
     return NextResponse.json({
       success: true,
-      message: existingUserIndex >= 0 ? 'Welcome back!' : 'Registration successful!',
+      message: isNewUser ? 'Registration successful!' : 'Welcome back!',
       isNewUser,
-      user: users[existingUserIndex >= 0 ? existingUserIndex : users.length - 1]
+      user
     })
   } catch (error) {
-    console.error('Error registering user:', error)
+    console.error('❌ Error registering user:', error)
     return NextResponse.json(
-      { error: 'Failed to register user' },
+      { error: 'Failed to register user', details: error.message },
       { status: 500 }
     )
   }
 }
 
-// GET - Get all users (admin only - add authentication later)
+// GET - Get all users (admin only)
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url)
     const email = searchParams.get('email')
 
-    const users = await readUsers()
-
     if (email) {
       // Get specific user
-      const user = users.find(u => u.email === email)
+      const user = await getUser(email)
       if (!user) {
         return NextResponse.json(
           { error: 'User not found' },
@@ -127,22 +99,18 @@ export async function GET(request) {
     }
 
     // Return all users (for admin)
+    const users = await getAllUsers()
+    const stats = await getUserStats()
+
     return NextResponse.json({
       users,
       total: users.length,
-      stats: {
-        totalUsers: users.length,
-        activeToday: users.filter(u => {
-          const lastActive = new Date(u.lastActive)
-          const today = new Date()
-          return lastActive.toDateString() === today.toDateString()
-        }).length
-      }
+      stats
     })
   } catch (error) {
-    console.error('Error fetching users:', error)
+    console.error('❌ Error fetching users:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch users' },
+      { error: 'Failed to fetch users', details: error.message },
       { status: 500 }
     )
   }
@@ -160,34 +128,17 @@ export async function PUT(request) {
       )
     }
 
-    const users = await readUsers()
-    const userIndex = users.findIndex(u => u.email === email)
-
-    if (userIndex < 0) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
-    }
-
-    // Update preferences
-    users[userIndex].emailPreferences = {
-      ...users[userIndex].emailPreferences,
-      ...emailPreferences
-    }
-    users[userIndex].lastActive = new Date().toISOString()
-
-    await writeUsers(users)
+    const user = await updateUserPreferences(email, emailPreferences)
 
     return NextResponse.json({
       success: true,
       message: 'Preferences updated',
-      user: users[userIndex]
+      user
     })
   } catch (error) {
-    console.error('Error updating user:', error)
+    console.error('❌ Error updating user:', error)
     return NextResponse.json(
-      { error: 'Failed to update user' },
+      { error: 'Failed to update user', details: error.message },
       { status: 500 }
     )
   }

@@ -85,11 +85,19 @@ export default function LandingPage() {
     
     try {
       // Save user email to database
-      await fetch("/api/users", {
+      const response = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() })
       })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to register')
+      }
+
+      const data = await response.json()
+      console.log('✅ User registration successful:', data)
       
       // Store user email in localStorage
       localStorage.setItem("av9assist_user_email", email.trim())
@@ -99,10 +107,10 @@ export default function LandingPage() {
       await new Promise((resolve) => setTimeout(resolve, 800))
       router.push("/chat")
     } catch (error) {
-      console.error("Registration error:", error)
-      // Continue to chat even if registration fails
-      localStorage.setItem("av9assist_user_email", email.trim())
-      router.push("/chat")
+      console.error("❌ Registration error:", error)
+      setIsLoading(false)
+      setEmailError("Failed to register. Please try again.")
+      // Don't proceed to chat if registration fails
     }
   }
 

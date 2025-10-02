@@ -1,19 +1,6 @@
 import { NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
 import nodemailer from 'nodemailer'
-
-const DB_FILE = path.join(process.cwd(), 'data', 'users.json')
-
-// Read users from database
-async function readUsers() {
-  try {
-    const data = await fs.readFile(DB_FILE, 'utf-8')
-    return JSON.parse(data)
-  } catch (error) {
-    return []
-  }
-}
+import { getAllUsers } from '@/lib/db'
 
 // Email templates
 const EMAIL_TEMPLATES = {
@@ -487,7 +474,7 @@ export async function GET(request) {
       )
     }
 
-    const users = await readUsers()
+    const users = await getAllUsers()
     const results = []
     let sent = 0
     let failed = 0
