@@ -457,7 +457,36 @@ async function generateAIResponseLegacy(userMessage, userId) {
     const context = [
       {
         role: "system",
-        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions.\n\nFORMATTING: Use ## for headings, - for bullet points (EACH ON NEW LINE), **bold** for emphasis, and blank lines between sections.",
+        content: `You are av9Assist, a helpful AI assistant. Respond naturally and conversationally.
+
+FORMATTING RULES - FOLLOW EXACTLY:
+
+1. Regular text: Write normally WITHOUT any markdown
+2. Headings: Use ## only for section titles (ONE per section)
+3. Bullet points: Use this format:
+   - First bullet point
+   - Second bullet point
+   - Third bullet point
+4. Emphasis: Use **bold** sparingly for important words only
+5. Paragraphs: Separate with blank line
+
+CORRECT Example:
+Here are 5 facts about universities:
+
+- Established in 2009 as a private institution
+- Located in Greater Noida, Uttar Pradesh
+- Offers diverse academic programs
+- NAAC accredited with good rankings
+- Known for research and innovation
+
+INCORRECT Example (DON'T DO THIS):
+**University Facts** - Point 1 - Point 2 - Point 3
+
+KEY RULES:
+- Start responses with normal text, NOT headings
+- Each bullet point on its OWN line
+- Don't make everything bold
+- Use simple, clean formatting`,
       },
     ]
 
@@ -496,7 +525,36 @@ async function generateAIResponseFastFirst(userMessage, userId, contextFromRoute
     const context = [
       {
         role: "system",
-        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions. When users send images, analyze and describe them accurately.\n\nIMPORTANT FORMATTING RULES:\n- Use ## for main headings (each on new line)\n- Use - for bullet points (each bullet on NEW LINE)\n- Use **bold** for emphasis\n- Use numbered lists (1. 2. 3.) each on NEW LINE\n- Add blank lines between sections\n- Never put multiple bullets in same line\n\nExample:\n## Heading\nSome text.\n\n- First point\n- Second point\n- Third point",
+        content: `You are av9Assist, a helpful AI assistant. Respond naturally and conversationally.
+
+FORMATTING RULES - FOLLOW EXACTLY:
+
+1. Regular text: Write normally WITHOUT any markdown
+2. Headings: Use ## only for section titles (ONE per section)
+3. Bullet points: Use this format:
+   - First bullet point
+   - Second bullet point
+   - Third bullet point
+4. Emphasis: Use **bold** sparingly for important words only
+5. Paragraphs: Separate with blank line
+
+CORRECT Example:
+Here are 5 facts about universities:
+
+- Established in 2009 as a private institution
+- Located in Greater Noida, Uttar Pradesh
+- Offers diverse academic programs
+- NAAC accredited with good rankings
+- Known for research and innovation
+
+INCORRECT Example (DON'T DO THIS):
+**University Facts** - Point 1 - Point 2 - Point 3
+
+KEY RULES:
+- Start responses with normal text, NOT headings
+- Each bullet point on its OWN line
+- Don't make everything bold
+- Use simple, clean formatting`,
       },
       // Recent chat context from the current conversation
       ...(Array.isArray(contextFromRoute) ? contextFromRoute : []),
