@@ -374,25 +374,25 @@ export const ChatMessage = memo(function ChatMessage({
                 rehypePlugins={[rehypeHighlight]}
                 components={{
                 h1: ({ node, ...props }) => (
-                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-none text-foreground/95 text-base" {...props} />
+                  <h1 className="text-2xl font-bold text-foreground mt-6 mb-4 pb-2 border-b border-border/50" {...props} />
                 ),
                 h2: ({ node, ...props }) => (
-                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-none text-foreground/95 text-base" {...props} />
+                  <h2 className="text-xl font-bold text-foreground mt-5 mb-3" {...props} />
                 ),
                 h3: ({ node, ...props }) => (
-                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-none text-foreground/95 text-base" {...props} />
+                  <h3 className="text-lg font-semibold text-foreground mt-4 mb-2" {...props} />
                 ),
                 h4: ({ node, ...props }) => (
-                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-none text-foreground/95 text-base" {...props} />
+                  <h4 className="text-base font-semibold text-foreground mt-3 mb-2" {...props} />
                 ),
                 h5: ({ node, ...props }) => (
-                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-none text-foreground/95 text-base" {...props} />
+                  <h5 className="text-sm font-semibold text-foreground mt-3 mb-2" {...props} />
                 ),
                 h6: ({ node, ...props }) => (
-                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-none text-foreground/95 text-base" {...props} />
+                  <h6 className="text-sm font-medium text-foreground/90 mt-2 mb-1" {...props} />
                 ),
                 p: ({ node, ...props }) => (
-                  <p className="leading-relaxed whitespace-pre-wrap break-words my-3 max-w-none text-foreground/95 text-base" {...props} />
+                  <p className="leading-7 whitespace-pre-wrap break-words my-4 max-w-none text-foreground/95 text-base" {...props} />
                 ),
                 strong: ({ node, ...props }) => (
                   <strong className="font-bold text-foreground" {...props} />
