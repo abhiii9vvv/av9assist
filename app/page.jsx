@@ -79,7 +79,7 @@ export default function LandingPage() {
           
           {/* Icon */}
           <div className="flex justify-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
+            <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-blue-500/20 rounded-2xl flex items-center justify-center border-2 border-primary/30 shadow-lg">
               <Sparkles className="w-8 h-8 text-primary" />
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function LandingPage() {
                   setEmailError("")
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleStartChat()}
-                className="h-12 text-center"
+                className="h-12 text-center border-2 border-primary/20 focus:border-primary/50 transition-colors"
                 disabled={isLoading}
               />
               {emailError && (
@@ -117,11 +117,17 @@ export default function LandingPage() {
             <Button
               onClick={handleStartChat}
               disabled={isLoading}
-              className="w-full h-12 text-base gap-2"
+              className="w-full h-12 text-base gap-2 relative overflow-hidden"
               size="lg"
             >
               {isLoading ? (
-                "Loading..."
+                <span className="flex items-center gap-2">
+                  <div className="relative w-5 h-5">
+                    <div className="absolute inset-0 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <div className="absolute inset-1 border-2 border-white/20 border-b-white rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+                  </div>
+                  <span>Launching...</span>
+                </span>
               ) : (
                 <>
                   Start Chatting
@@ -132,18 +138,18 @@ export default function LandingPage() {
           </div>
 
           {/* Simple Features */}
-          <div className="pt-8 grid grid-cols-3 gap-4 text-sm text-muted-foreground">
-            <div className="space-y-1">
+          <div className="pt-8 grid grid-cols-3 gap-3 text-sm">
+            <div className="space-y-1 p-3 rounded-xl border-2 border-blue-500/20 bg-blue-500/5 hover:border-blue-500/40 transition-colors">
               <div className="font-medium text-foreground">Fast</div>
-              <div className="text-xs">Instant responses</div>
+              <div className="text-xs text-muted-foreground">Instant responses</div>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 p-3 rounded-xl border-2 border-green-500/20 bg-green-500/5 hover:border-green-500/40 transition-colors">
               <div className="font-medium text-foreground">Secure</div>
-              <div className="text-xs">Private & safe</div>
+              <div className="text-xs text-muted-foreground">Private & safe</div>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 p-3 rounded-xl border-2 border-purple-500/20 bg-purple-500/5 hover:border-purple-500/40 transition-colors">
               <div className="font-medium text-foreground">Free</div>
-              <div className="text-xs">No credit card</div>
+              <div className="text-xs text-muted-foreground">No credit card</div>
             </div>
           </div>
         </div>
