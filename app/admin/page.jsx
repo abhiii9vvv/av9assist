@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,10 +11,11 @@ import { Badge } from '@/components/ui/badge'
 import { 
   Mail, Users, Send, AlertCircle, CheckCircle, Loader2, 
   UserPlus, Activity, TrendingUp, Clock, Filter, Search,
-  RefreshCw, LogOut, Shield, Sparkles, Heart, Bell
+  RefreshCw, LogOut, Shield, Sparkles, Heart, Bell, Home, MessageSquare
 } from 'lucide-react'
 
 export default function AdminPage() {
+  const router = useRouter()
   const [users, setUsers] = useState([])
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -178,7 +180,25 @@ export default function AdminPage() {
             </h1>
             <p className="text-muted-foreground mt-1">Manage users, analytics, and email campaigns</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => router.push('/')} 
+              size="sm"
+              className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800 hover:border-blue-300 dark:hover:border-blue-700"
+            >
+              <Home className="h-4 w-4 mr-2" />
+              Home
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => router.push('/chat')} 
+              size="sm"
+              className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-green-200 dark:border-green-800 hover:border-green-300 dark:hover:border-green-700"
+            >
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Chat
+            </Button>
             <Button variant="outline" onClick={loadUsers} size="sm">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
