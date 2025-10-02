@@ -1541,14 +1541,18 @@ export default function ChatPage() {
                     className="hidden"
                     aria-label="Upload image"
                   />
-                  {/* Image attachment button */}
+                  {/* Image attachment button - Under Construction */}
                   <Button
-                    onClick={() => fileInputRef.current?.click()}
+                    onClick={() => {
+                      setError('🚧 Image upload feature is under construction! It will be available soon. Stay tuned! 🎨')
+                      setTimeout(() => setError(''), 4000)
+                    }}
                     variant="ghost"
                     size="icon"
-                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 hover:bg-accent"
-                    title="Upload image"
-                    aria-label="Upload image"
+                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 opacity-60 cursor-not-allowed"
+                    title="Image upload (Coming Soon)"
+                    aria-label="Image upload coming soon"
+                    disabled
                   >
                     <ImageIcon className="w-4 h-4" />
                   </Button>
@@ -1642,8 +1646,8 @@ export default function ChatPage() {
 
       {/* History Drawer */}
       <Drawer open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DrawerContent className="max-h-[85vh] bg-gradient-to-b from-background via-card/50 to-background">
-          <DrawerHeader className="border-b bg-gradient-to-r from-card/80 via-card/95 to-card/80 backdrop-blur-sm">
+        <DrawerContent className="max-h-[85vh] bg-gradient-to-b from-background via-card/80 to-background">
+          <DrawerHeader className="border-b bg-gradient-to-r from-card/90 via-card to-card/90 backdrop-blur-sm shadow-sm">
             <DrawerTitle className="text-lg font-bold">History</DrawerTitle>
             {conversations.length > 0 && (
               <div className="px-1 space-y-2">
@@ -1663,20 +1667,22 @@ export default function ChatPage() {
                   {showOnlyFavorites ? "Show All" : "Show Favorites"}
                 </Button>
               </div>
-            )}
+            )}  
           </DrawerHeader>
-          <div className="px-4 pb-2 overflow-y-auto">
+          <div className="px-4 pb-2 overflow-y-auto bg-gradient-to-b from-card/20 via-card/10 to-transparent">
             {isInitialLoading ? (
-              <div className="space-y-2">
+              <div className="space-y-3 py-2">
                 {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center justify-between py-2">
-                    <div className="flex-1 pr-2">
-                      <div className="h-4 bg-muted animate-pulse rounded w-3/4 mb-1"></div>
-                      <div className="h-3 bg-muted animate-pulse rounded w-1/2"></div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-8 h-8 bg-muted animate-pulse rounded-md"></div>
-                      <div className="w-8 h-8 bg-muted animate-pulse rounded-md"></div>
+                  <div key={i} className="bg-gradient-to-br from-card via-card/95 to-card/90 border border-border rounded-xl p-4 animate-pulse">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 bg-gradient-to-r from-muted via-muted/60 to-muted rounded-lg w-3/4 animate-shimmer" style={{backgroundSize: '200% 100%'}}></div>
+                        <div className="h-3 bg-gradient-to-r from-muted via-muted/60 to-muted rounded-lg w-1/2 animate-shimmer" style={{backgroundSize: '200% 100%', animationDelay: '0.2s'}}></div>
+                      </div>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <div className="w-9 h-9 bg-gradient-to-r from-muted via-muted/60 to-muted rounded-lg animate-shimmer" style={{backgroundSize: '200% 100%', animationDelay: '0.4s'}}></div>
+                        <div className="w-9 h-9 bg-gradient-to-r from-muted via-muted/60 to-muted rounded-lg animate-shimmer" style={{backgroundSize: '200% 100%', animationDelay: '0.6s'}}></div>
+                      </div>
                     </div>
                   </div>
                 ))}
