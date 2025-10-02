@@ -73,6 +73,8 @@ export default function ChatPage() {
   const [editingContent, setEditingContent] = useState("")
   const [inputError, setInputError] = useState("")
   const [isInputFocused, setIsInputFocused] = useState(false)
+  const [showNavbar, setShowNavbar] = useState(true)
+  const [lastScrollY, setLastScrollY] = useState(0)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const streamTimersRef = useRef({})
@@ -179,6 +181,25 @@ export default function ChatPage() {
       setShowPrivacyNotice(true)
     }
   }, [])
+
+  // Handle navbar hide/show on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY
+      
+      // Show navbar when scrolling up, hide when scrolling down
+      if (currentScrollY < lastScrollY || currentScrollY < 50) {
+        setShowNavbar(true)
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setShowNavbar(false)
+      }
+      
+      setLastScrollY(currentScrollY)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [lastScrollY])
 
   // Handle privacy notice acceptance
   const handlePrivacyNoticeAccept = () => {
@@ -1230,8 +1251,8 @@ export default function ChatPage() {
       >
         {statusMessage}
       </div>
-      {/* Header - Always Visible */}
-      <header className="border-b bg-gradient-to-r from-background via-card/95 to-background backdrop-blur-md sticky top-0 z-50 shadow-lg shrink-0">
+      {/* Header - Sticky with slide animation */}
+      <header className={`border-b bg-gradient-to-r from-background via-card/95 to-background backdrop-blur-md sticky top-0 z-50 shadow-lg shrink-0 transition-transform duration-300 ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}>
         <div className="container mx-auto px-1 sm:px-2 py-2 sm:py-3 flex items-center justify-between max-w-6xl">
           <div className="flex items-center gap-1 sm:gap-2 min-w-0">
             <Button
