@@ -216,7 +216,7 @@ export default function LandingPage() {
 
       {/* Version 1.1 New Features Popup */}
       <Dialog open={showVersionPopup} onOpenChange={setShowVersionPopup}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[450px] bg-background/95 backdrop-blur-xl border-2 border-primary/20 shadow-2xl">
           <DialogHeader>
             <div className="flex items-center gap-2 mb-2">
               <Badge variant="secondary" className="px-3 py-1">
@@ -231,7 +231,7 @@ export default function LandingPage() {
           </DialogHeader>
 
           <div className="space-y-3 py-4">
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-card/50 backdrop-blur-sm border border-primary/10">
               <div className="shrink-0 w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mt-0.5">
                 <Image className="w-4 h-4 text-primary" />
               </div>
@@ -242,7 +242,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-card/50 backdrop-blur-sm border border-secondary/10">
               <div className="shrink-0 w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center mt-0.5">
                 <Zap className="w-4 h-4 text-secondary" />
               </div>
@@ -253,7 +253,7 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="flex items-start gap-3">
+            <div className="flex items-start gap-3 p-3 rounded-lg bg-card/50 backdrop-blur-sm border border-accent/10">
               <div className="shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center mt-0.5">
                 <Sparkles className="w-4 h-4 text-accent" />
               </div>
