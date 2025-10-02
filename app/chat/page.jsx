@@ -643,13 +643,48 @@ export default function ChatPage() {
       return
     }
 
-    // Convert to base64
+    // Compress and convert to base64
     const reader = new FileReader()
     reader.onloadend = () => {
-      const base64String = reader.result
-      setSelectedImage(base64String)
-      setImagePreview(base64String)
-      setError('')
+      const img = new Image()
+      img.onload = () => {
+        // Create canvas for compression
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        
+        // Calculate new dimensions (max 512px on longest side for faster processing)
+        const maxSize = 512
+        let width = img.width
+        let height = img.height
+        
+        if (width > height && width > maxSize) {
+          height = (height * maxSize) / width
+          width = maxSize
+        } else if (height > maxSize) {
+          width = (width * maxSize) / height
+          height = maxSize
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        
+        // Draw and compress image (0.5 quality = smaller size, faster API response)
+        ctx.drawImage(img, 0, 0, width, height)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5)
+        
+        setSelectedImage(compressedBase64)
+        setImagePreview(compressedBase64)
+        setError('')
+        
+        // Log compression stats
+        const originalSize = (reader.result.length / 1024).toFixed(2)
+        const compressedSize = (compressedBase64.length / 1024).toFixed(2)
+        console.log(`📦 Image compressed: ${originalSize}KB → ${compressedSize}KB (${((compressedSize/originalSize)*100).toFixed(1)}% of original)`)
+      }
+      img.onerror = () => {
+        setError('Failed to process image')
+      }
+      img.src = reader.result
     }
     reader.onerror = () => {
       setError('Failed to read image file')
@@ -670,7 +705,12 @@ export default function ChatPage() {
     if (sendingRef.current || (!inputValue.trim() && !selectedImage) || isTyping) return
     sendingRef.current = true
 
-    setStatusMessage("Sending message...")
+    // Show appropriate status message
+    if (selectedImage) {
+      setStatusMessage("🖼️ Processing image with AI (this may take 10-15 seconds)...")
+    } else {
+      setStatusMessage("Sending message...")
+    }
 
     // Cancel any existing request
     if (abortControllerRef.current) {

@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
-import { Sparkles, Zap, Shield, ArrowRight } from "lucide-react"
+import { Sparkles, Zap, Shield, ArrowRight, Image, Rocket, CheckCircle2 } from "lucide-react"
 import { useRenderTime } from "@/components/performance-monitor"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { Logo } from "@/components/optimized-image"
@@ -29,7 +30,22 @@ export default function LandingPage() {
   
   const [name, setName] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showVersionPopup, setShowVersionPopup] = useState(false)
   const router = useRouter()
+
+  // Check if user has seen version 1.1 popup
+  useEffect(() => {
+    const hasSeenV11 = localStorage.getItem("av9assist_seen_v1.1")
+    if (!hasSeenV11) {
+      // Show popup after a short delay for better UX
+      setTimeout(() => setShowVersionPopup(true), 1000)
+    }
+  }, [])
+
+  const handleCloseVersionPopup = () => {
+    localStorage.setItem("av9assist_seen_v1.1", "true")
+    setShowVersionPopup(false)
+  }
 
   // Prefetch the chat route so the first navigation is instant
   useEffect(() => {
@@ -197,6 +213,104 @@ export default function LandingPage() {
           </div>
         </div>
       )}
+
+      {/* Version 1.1 New Features Popup */}
+      <Dialog open={showVersionPopup} onOpenChange={setShowVersionPopup}>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="secondary" className="px-3 py-1">
+                <Rocket className="w-3 h-3 mr-1" />
+                v1.1
+              </Badge>
+            </div>
+            <DialogTitle className="text-2xl">✨ What's New in av9Assist!</DialogTitle>
+            <DialogDescription className="text-base">
+              Exciting new features and improvements are now available
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Feature 1: Image Upload */}
+            <div className="flex gap-3 p-4 rounded-lg bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                <Image className="w-5 h-5 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-semibold flex items-center gap-2">
+                  🖼️ AI Vision - Image Upload
+                  <Badge variant="secondary" className="text-xs">NEW</Badge>
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload images and get detailed AI-powered descriptions and analysis. Perfect for understanding visual content!
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 2: Performance */}
+            <div className="flex gap-3 p-4 rounded-lg bg-gradient-to-r from-secondary/10 via-secondary/5 to-transparent border border-secondary/20">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-secondary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-semibold flex items-center gap-2">
+                  ⚡ 50% Faster Responses
+                  <Badge variant="secondary" className="text-xs">IMPROVED</Badge>
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Optimized AI processing with smart image compression. Get answers in 8-15 seconds instead of 20-30!
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 3: UI Improvements */}
+            <div className="flex gap-3 p-4 rounded-lg bg-gradient-to-r from-accent/10 via-accent/5 to-transparent border border-accent/20">
+              <div className="shrink-0 w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-accent" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-semibold flex items-center gap-2">
+                  🎨 Enhanced UI & Dark Mode
+                  <Badge variant="secondary" className="text-xs">POLISHED</Badge>
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Beautiful gradient backgrounds, smooth animations, and improved dark mode. Now with shimmer loading effects!
+                </p>
+              </div>
+            </div>
+
+            {/* Additional improvements */}
+            <div className="space-y-2 pt-2">
+              <p className="text-sm font-medium text-muted-foreground">Other Improvements:</p>
+              <ul className="space-y-1.5 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                  <span>Dual Gemini API keys with automatic fallback</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                  <span>Better conversation history with visible backgrounds</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                  <span>Automatic image compression (85% size reduction)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-primary shrink-0" />
+                  <span>Fixed all AI provider configuration issues</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button onClick={handleCloseVersionPopup} className="w-full" size="lg">
+              Got it, Let's Chat! 🚀
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Structured Data for SEO */}
       <script
         type="application/ld+json"
