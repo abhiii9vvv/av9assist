@@ -75,6 +75,7 @@ export default function ChatPage() {
   const [isInputFocused, setIsInputFocused] = useState(false)
   const [showNavbar, setShowNavbar] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const streamTimersRef = useRef({})
@@ -204,11 +205,18 @@ export default function ChatPage() {
     return () => scrollContainer.removeEventListener('scroll', handleScroll)
   }, [lastScrollY])
 
-  // Handle privacy notice acceptance
+  // Handle privacy notice acceptance with celebration animation
   const handlePrivacyNoticeAccept = () => {
     try {
-      localStorage.setItem("av9assist_privacy_notice_seen", "true")
-      setShowPrivacyNotice(false)
+      // Show welcome animation
+      setShowWelcomeAnimation(true)
+      
+      // Wait for animation, then close dialog
+      setTimeout(() => {
+        localStorage.setItem("av9assist_privacy_notice_seen", "true")
+        setShowPrivacyNotice(false)
+        setShowWelcomeAnimation(false)
+      }, 2000) // 2 seconds animation
     } catch (e) {
       console.warn("Failed to save privacy notice status", e)
       setShowPrivacyNotice(false)
@@ -1182,6 +1190,58 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col overflow-hidden">
+      {/* Welcome Animation Overlay */}
+      {showWelcomeAnimation && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-xl">
+          <div className="relative flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
+            {/* Animated Sparkle Circle */}
+            <div className="relative w-32 h-32">
+              {/* Outer rotating ring */}
+              <div className="absolute inset-0 rounded-full border-4 border-primary/30 border-t-primary animate-spin" 
+                   style={{animationDuration: '1.5s'}}></div>
+              
+              {/* Middle pulsing ring */}
+              <div className="absolute inset-3 rounded-full border-4 border-blue-500/20 border-b-blue-500 animate-spin" 
+                   style={{animationDuration: '2s', animationDirection: 'reverse'}}></div>
+              
+              {/* Inner glow */}
+              <div className="absolute inset-6 rounded-full bg-gradient-to-br from-primary/40 to-blue-500/40 animate-pulse blur-xl"></div>
+              
+              {/* Center sparkle icon */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="w-12 h-12 text-primary animate-pulse" />
+              </div>
+            </div>
+            
+            {/* Welcome text with typing effect */}
+            <div className="text-center space-y-2 animate-in slide-in-from-bottom-4 duration-700 delay-300">
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-500 to-primary bg-clip-text text-transparent animate-pulse">
+                Welcome to av9Assist! 🎉
+              </h2>
+              <p className="text-muted-foreground text-sm animate-in fade-in duration-500 delay-500">
+                Getting everything ready for you...
+              </p>
+            </div>
+            
+            {/* Floating particles */}
+            <div className="absolute inset-0 pointer-events-none">
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute w-2 h-2 rounded-full bg-primary/40 animate-ping"
+                  style={{
+                    left: `${Math.random() * 100}%`,
+                    top: `${Math.random() * 100}%`,
+                    animationDelay: `${Math.random() * 2}s`,
+                    animationDuration: `${2 + Math.random() * 2}s`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Privacy Notice Dialog */}
       <Dialog open={showPrivacyNotice} onOpenChange={setShowPrivacyNotice}>
         <DialogContent className="sm:max-w-md bg-background/95 backdrop-blur-xl border-2 border-primary/20 shadow-2xl">
@@ -1221,10 +1281,21 @@ export default function ChatPage() {
             <div className="pt-2">
               <Button 
                 onClick={handlePrivacyNoticeAccept}
-                className="w-full"
+                className="w-full relative overflow-hidden group"
                 size="lg"
+                disabled={showWelcomeAnimation}
               >
-                Got it, Start Chatting
+                {showWelcomeAnimation ? (
+                  <span className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Starting...
+                  </span>
+                ) : (
+                  <>
+                    <span className="relative z-10">Got it, Start Chatting</span>
+                    <Sparkles className="w-4 h-4 ml-2 group-hover:animate-pulse" />
+                  </>
+                )}
               </Button>
             </div>
           </div>
