@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
 import { Send, ArrowLeft, Mic, AlertCircle, History as HistoryIcon, Trash2, ChevronDown, StopCircle, Plus, Download, FileText, Star, X, Bold, Italic, Code, Keyboard, BarChart, MessageSquare, Search, HelpCircle, Lock, Database, Shield, Sparkles, Image as ImageIcon } from "lucide-react"
 import { sendMessage, ApiError } from "@/lib/api"
@@ -2062,6 +2063,29 @@ export default function ChatPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Floating New Chat Button - Always Visible */}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              onClick={startNewChat}
+              size="lg"
+              className="fixed bottom-6 right-6 h-20 w-20 rounded-full shadow-2xl hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] transition-all duration-300 hover:scale-110 z-50 bg-gradient-to-br from-primary via-primary to-primary/80 hover:from-primary/90 hover:via-primary hover:to-primary border-4 border-primary-foreground/20 hover:border-primary-foreground/30 group animate-pulse hover:animate-none"
+              aria-label="Start New Chat"
+            >
+              <div className="relative">
+                <Plus className="h-10 w-10 group-hover:rotate-90 transition-transform duration-300" />
+                <div className="absolute -top-1 -right-1 h-3 w-3 bg-green-400 rounded-full animate-ping"></div>
+              </div>
+              <span className="sr-only">New Chat</span>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left" className="text-lg font-semibold">
+            <p>✨ Start New Chat</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   )
 }
