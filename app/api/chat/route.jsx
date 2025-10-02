@@ -457,7 +457,7 @@ async function generateAIResponseLegacy(userMessage, userId) {
     const context = [
       {
         role: "system",
-        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions.",
+        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions. Use proper markdown formatting: ## for headings, - for bullet points, **bold** for emphasis, and proper line breaks between sections.",
       },
     ]
 
@@ -496,7 +496,7 @@ async function generateAIResponseFastFirst(userMessage, userId, contextFromRoute
     const context = [
       {
         role: "system",
-        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions. When users send images, analyze and describe them accurately.",
+        content: "You are av9Assist, a helpful AI assistant. Respond naturally and helpfully to user questions. When users send images, analyze and describe them accurately. Always use proper markdown formatting: ## for headings, - for bullet points, **bold** for emphasis, numbered lists (1. 2. 3.), and proper line breaks between sections for better readability.",
       },
       // Recent chat context from the current conversation
       ...(Array.isArray(contextFromRoute) ? contextFromRoute : []),
