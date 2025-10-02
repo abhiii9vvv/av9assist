@@ -87,7 +87,22 @@ export default function ChatPage() {
   const [imagePreview, setImagePreview] = useState(null)
   const fileInputRef = useRef(null)
 
+  // Check for email on mount and redirect if missing
   useEffect(() => {
+    const checkEmail = () => {
+      const storedEmail = localStorage.getItem("av9assist_user_email")
+      if (!storedEmail || !storedEmail.trim()) {
+        console.log("No email found, redirecting to homepage...")
+        router.replace("/")
+        return false
+      }
+      return true
+    }
+
+    if (!checkEmail()) {
+      return
+    }
+
     setIsInitialLoading(true)
     // Get user email from localStorage
     const storedEmail = localStorage.getItem("av9assist_user_email")
@@ -95,7 +110,7 @@ export default function ChatPage() {
       setUserEmail(storedEmail)
     } else {
       // Redirect to homepage if no email found
-      router.push("/")
+      router.replace("/")
       return
     }
     
@@ -142,6 +157,21 @@ export default function ChatPage() {
       setMessages([welcomeMessage])
     }
   }, [])
+
+  // Periodic check to ensure email is still present (prevents localStorage clearing during session)
+  useEffect(() => {
+    const emailCheckInterval = setInterval(() => {
+      const storedEmail = localStorage.getItem("av9assist_user_email")
+      if (!storedEmail || !storedEmail.trim()) {
+        console.log("Email removed from localStorage, redirecting to homepage...")
+        clearInterval(emailCheckInterval)
+        router.replace("/")
+      }
+    }, 3000) // Check every 3 seconds
+
+    return () => clearInterval(emailCheckInterval)
+  }, [router])
+
 
   // Check if user has seen privacy notice
   useEffect(() => {
@@ -1286,6 +1316,18 @@ export default function ChatPage() {
         return prev
       })
     }
+  }
+
+  // Show loading screen if no email (while redirecting)
+  if (!userEmail) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
