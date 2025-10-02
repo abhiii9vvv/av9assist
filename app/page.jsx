@@ -92,19 +92,7 @@ export default function LandingPage() {
           {/* Icon */}
           <div className="flex justify-center">
             <div className="w-20 h-20 bg-gradient-to-br from-purple-500/10 to-cyan-500/10 rounded-2xl flex items-center justify-center border-2 border-purple-500/30 shadow-lg">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="56" height="56">
-                <defs>
-                  <linearGradient id="av9-gradient" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#7c3aed"/>
-                    <stop offset="100%" stopColor="#06b6d4"/>
-                  </linearGradient>
-                </defs>
-                <g fill="none" stroke="url(#av9-gradient)" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 40 L24 20 L36 40"/>
-                  <path d="M40 20 L52 20 L46 28 L52 40 L38 40"/>
-                </g>
-                <circle cx="32" cy="32" r="30" fill="none" stroke="url(#av9-gradient)" strokeOpacity="0.25"/>
-              </svg>
+              <Bot className="w-12 h-12 text-purple-600 dark:text-purple-400" />
             </div>
           </div>
 
@@ -138,27 +126,33 @@ export default function LandingPage() {
               )}
             </div>
 
-            <Button
-              onClick={handleStartChat}
-              disabled={isLoading}
-              className="w-full h-12 text-base gap-2 relative overflow-hidden"
-              size="lg"
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <div className="relative w-5 h-5">
-                    <div className="absolute inset-0 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    <div className="absolute inset-1 border-2 border-white/20 border-b-white rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
-                  </div>
-                  <span>Launching...</span>
-                </span>
-              ) : (
-                <>
-                  Start Chatting
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
+            {email.trim() ? (
+              <Button
+                onClick={handleStartChat}
+                disabled={isLoading}
+                className="w-full h-12 text-base gap-2 relative overflow-hidden"
+                size="lg"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-2">
+                    <div className="relative w-5 h-5">
+                      <div className="absolute inset-0 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <div className="absolute inset-1 border-2 border-white/20 border-b-white rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+                    </div>
+                    <span>Launching...</span>
+                  </span>
+                ) : (
+                  <>
+                    Start Chatting
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            ) : (
+              <div className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-lg">
+                <p className="text-sm text-muted-foreground">Please enter your email to continue</p>
+              </div>
+            )}
           </div>
 
           {/* Simple Features */}
