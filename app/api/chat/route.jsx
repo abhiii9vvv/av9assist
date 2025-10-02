@@ -449,6 +449,71 @@ function looksLikePromptRequest(text) {
   return false
 }
 
+// Automatically format AI response to ensure proper markdown structure
+function formatAIResponse(response) {
+  if (!response || typeof response !== 'string') return response
+  
+  let formatted = response.trim()
+  
+  // Step 1: Detect if response is a list-like answer (multiple points)
+  const hasMultiplePoints = formatted.includes('-') || formatted.includes('•') || 
+                            /\d+\.\s/.test(formatted) || formatted.split('.').length > 3
+  
+  // Step 2: Split into sentences/lines
+  let lines = formatted.split(/\n+/)
+  
+  // Step 3: Process each line
+  const processedLines = lines.map((line, idx) => {
+    line = line.trim()
+    if (!line) return ''
+    
+    // If line starts with a dash or bullet, ensure proper formatting
+    if (line.match(/^[-•*]\s*/)) {
+      // Already a bullet point, clean it up
+      return line.replace(/^[-•*]\s*/, '- ')
+    }
+    
+    // If line starts with number (1. 2. etc), convert to bullet
+    if (line.match(/^\d+\.\s+/)) {
+      return line.replace(/^\d+\.\s+/, '- ')
+    }
+    
+    // If this looks like a list item (sentence ending with period/colon after intro)
+    if (idx > 0 && hasMultiplePoints && line.length < 200 && !line.startsWith('#')) {
+      // Check if previous line was intro text
+      const prevLine = lines[idx - 1]?.trim()
+      if (prevLine && (prevLine.endsWith(':') || prevLine.toLowerCase().includes('here are') || 
+          prevLine.toLowerCase().includes('following') || prevLine.toLowerCase().includes('points') ||
+          prevLine.toLowerCase().includes('bullet'))) {
+        return `- ${line}`
+      }
+    }
+    
+    return line
+  })
+  
+  // Step 4: Reconstruct with proper spacing
+  let result = []
+  let lastWasBullet = false
+  
+  for (let i = 0; i < processedLines.length; i++) {
+    const line = processedLines[i]
+    if (!line) continue
+    
+    const isBullet = line.startsWith('-')
+    
+    // Add spacing before bullet lists
+    if (isBullet && !lastWasBullet && result.length > 0) {
+      result.push('') // blank line before list
+    }
+    
+    result.push(line)
+    lastWasBullet = isBullet
+  }
+  
+  return result.join('\n')
+}
+
 async function generateAIResponseLegacy(userMessage, userId) {
   try {
     const aiProvider = new AIProvider()
@@ -457,36 +522,7 @@ async function generateAIResponseLegacy(userMessage, userId) {
     const context = [
       {
         role: "system",
-        content: `You are av9Assist, a helpful AI assistant. Respond naturally and conversationally.
-
-FORMATTING RULES - FOLLOW EXACTLY:
-
-1. Regular text: Write normally WITHOUT any markdown
-2. Headings: Use ## only for section titles (ONE per section)
-3. Bullet points: Use this format:
-   - First bullet point
-   - Second bullet point
-   - Third bullet point
-4. Emphasis: Use **bold** sparingly for important words only
-5. Paragraphs: Separate with blank line
-
-CORRECT Example:
-Here are 5 facts about universities:
-
-- Established in 2009 as a private institution
-- Located in Greater Noida, Uttar Pradesh
-- Offers diverse academic programs
-- NAAC accredited with good rankings
-- Known for research and innovation
-
-INCORRECT Example (DON'T DO THIS):
-**University Facts** - Point 1 - Point 2 - Point 3
-
-KEY RULES:
-- Start responses with normal text, NOT headings
-- Each bullet point on its OWN line
-- Don't make everything bold
-- Use simple, clean formatting`,
+        content: "You are av9Assist, a helpful AI assistant. Respond naturally and conversationally to user questions.",
       },
     ]
 
@@ -494,7 +530,7 @@ KEY RULES:
 
     if (result.success) {
       console.log(`[v0] AI response generated using ${result.provider}`)
-      return result.response
+      return formatAIResponse(result.response)
     } else {
       console.error("[v0] All AI providers failed:", result.error)
       return result.response // This contains the fallback message
@@ -525,36 +561,7 @@ async function generateAIResponseFastFirst(userMessage, userId, contextFromRoute
     const context = [
       {
         role: "system",
-        content: `You are av9Assist, a helpful AI assistant. Respond naturally and conversationally.
-
-FORMATTING RULES - FOLLOW EXACTLY:
-
-1. Regular text: Write normally WITHOUT any markdown
-2. Headings: Use ## only for section titles (ONE per section)
-3. Bullet points: Use this format:
-   - First bullet point
-   - Second bullet point
-   - Third bullet point
-4. Emphasis: Use **bold** sparingly for important words only
-5. Paragraphs: Separate with blank line
-
-CORRECT Example:
-Here are 5 facts about universities:
-
-- Established in 2009 as a private institution
-- Located in Greater Noida, Uttar Pradesh
-- Offers diverse academic programs
-- NAAC accredited with good rankings
-- Known for research and innovation
-
-INCORRECT Example (DON'T DO THIS):
-**University Facts** - Point 1 - Point 2 - Point 3
-
-KEY RULES:
-- Start responses with normal text, NOT headings
-- Each bullet point on its OWN line
-- Don't make everything bold
-- Use simple, clean formatting`,
+        content: "You are av9Assist, a helpful AI assistant. Respond naturally and conversationally to user questions. When users send images, analyze and describe them accurately.",
       },
       // Recent chat context from the current conversation
       ...(Array.isArray(contextFromRoute) ? contextFromRoute : []),
@@ -566,14 +573,14 @@ KEY RULES:
     const fast = await aiProvider.getAIResponseFast(userMessage, null, context, { timeoutMs, imageData })
     if (fast && fast.success) {
       console.log(`[v1] Fast AI response using ${fast.provider}`)
-      return fast.response
+      return formatAIResponse(fast.response)
     }
 
     // Fallback to legacy sequential approach
     const result = await aiProvider.getAIResponse(userMessage, null, context, imageData)
     if (result.success) {
       console.log(`[v1] Sequential AI response using ${result.provider}`)
-      return result.response
+      return formatAIResponse(result.response)
     } else {
       console.error("[v1] All AI providers failed:", result.error)
       return result.response
