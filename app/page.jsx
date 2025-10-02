@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
-import { Bot, Zap, Shield, ArrowRight, Image, Rocket, CheckCircle2, Settings } from "lucide-react"
+import { Bot, Zap, Shield, ArrowRight, Image, Rocket, CheckCircle2, Settings, AlertCircle } from "lucide-react"
 import { useRenderTime } from "@/components/performance-monitor"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { Logo } from "@/components/optimized-image"
@@ -32,7 +32,17 @@ export default function LandingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showVersionPopup, setShowVersionPopup] = useState(false)
   const [emailError, setEmailError] = useState("")
+  const [hasExistingEmail, setHasExistingEmail] = useState(false)
   const router = useRouter()
+
+  // Check if user already has email stored
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("av9assist_user_email")
+    if (storedEmail && storedEmail.trim()) {
+      setEmail(storedEmail)
+      setHasExistingEmail(true)
+    }
+  }, [])
 
   // Check if user has seen version 1.1 popup
   useEffect(() => {
@@ -205,45 +215,52 @@ export default function LandingPage() {
                     <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg mb-2">
                       <Bot className="w-8 h-8 text-white" />
                     </div>
-                    <CardTitle className="text-2xl lg:text-3xl font-bold">Get Started Free</CardTitle>
+                    <CardTitle className="text-2xl lg:text-3xl font-bold">
+                      {hasExistingEmail ? "Welcome Back!" : "Get Started Free"}
+                    </CardTitle>
                     <CardDescription className="text-base">
-                      Enter your email to begin your AI journey
+                      {hasExistingEmail 
+                        ? "Ready to continue your AI journey?" 
+                        : "Enter your email to begin your AI journey"
+                      }
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-5 px-6 pb-6">
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="text-sm font-medium text-foreground block">
-                        Email Address <span className="text-red-500">*</span>
-                      </label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="your.email@example.com"
-                        value={email}
-                        onChange={(e) => {
-                          setEmail(e.target.value)
-                          setEmailError("")
-                        }}
-                        onKeyDown={(e) => e.key === "Enter" && handleStartChat()}
-                        className={`h-12 text-base transition-all duration-300 focus:scale-[1.01] ${
-                          emailError ? "border-red-500 focus:border-red-500" : ""
-                        }`}
-                        disabled={isLoading}
-                        required
-                      />
-                      {emailError && (
-                        <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 animate-fade-in">
-                          <AlertCircle className="w-4 h-4" />
-                          <span>{emailError}</span>
-                        </div>
-                      )}
-                    </div>
+                    {!hasExistingEmail && (
+                      <div className="space-y-2">
+                        <label htmlFor="email" className="text-sm font-medium text-foreground block">
+                          Email Address <span className="text-red-500">*</span>
+                        </label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="your.email@example.com"
+                          value={email}
+                          onChange={(e) => {
+                            setEmail(e.target.value)
+                            setEmailError("")
+                          }}
+                          onKeyDown={(e) => e.key === "Enter" && handleStartChat()}
+                          className={`h-12 text-base transition-all duration-300 focus:scale-[1.01] ${
+                            emailError ? "border-red-500 focus:border-red-500" : ""
+                          }`}
+                          disabled={isLoading}
+                          required
+                        />
+                        {emailError && (
+                          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 animate-fade-in">
+                            <AlertCircle className="w-4 h-4" />
+                            <span>{emailError}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <ScaleTransition whileHover={true} whileTap={true}>
                         <Button
                           onClick={handleStartChat}
-                          disabled={isLoading || !email.trim()}
+                          disabled={isLoading || (!hasExistingEmail && !email.trim())}
                           className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                           size="lg"
                         >
@@ -261,10 +278,12 @@ export default function LandingPage() {
                         </Button>
                       </ScaleTransition>
                       
-                      <div className="flex items-center gap-2 text-xs text-center text-muted-foreground justify-center">
-                        <Shield className="w-3 h-3" />
-                        <span>Your email is secure and will never be shared</span>
-                      </div>
+                      {!hasExistingEmail && (
+                        <div className="flex items-center gap-2 text-xs text-center text-muted-foreground justify-center">
+                          <Shield className="w-3 h-3" />
+                          <span>Your email is secure and will never be shared</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Trust Badges */}
