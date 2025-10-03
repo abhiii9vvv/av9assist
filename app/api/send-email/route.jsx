@@ -2,76 +2,300 @@ import { NextResponse } from 'next/server'
 import nodemailer from 'nodemailer'
 import { getAllUsers } from '@/lib/db'
 
+// -----------------------------------------
+// Personalization utilities
+// -----------------------------------------
+
+const HERO_TITLE_VARIANTS = [
+  "Your AI co-pilot is ready.",
+  "A smarter creative partner just joined your team.",
+  "Launch faster with av9Assist at your side.",
+  "Your ideas, now on fast-forward.",
+  "Every breakthrough needs the right sidekick."
+]
+
+const HERO_SUBTITLE_VARIANTS = [
+  "From quick answers to deep research, av9Assist keeps pace with whatever you're building.",
+  "Share your goals and I'll help brainstorm, plan, and ship with confidence.",
+  "Think of me as your always-on teammate for ideation, writing, and technical problem solving.",
+  "Bring the spark — I'll handle the heavy lifting across your workflow.",
+  "Fresh insights, instant drafts, and smarter support in every conversation."
+]
+
+const INTRO_HIGHLIGHTS = [
+  "You just unlocked your personal AI co-pilot for faster ideas, better focus, and effortless execution.",
+  "Consider this your launchpad: smarter research, sharper copy, and calmer workflows in one space.",
+  "Welcome to the workspace where curiosity meets clarity — and you stay in flow.",
+  "You've joined thousands of builders who let av9Assist accelerate their next big win."
+]
+
+const ONBOARDING_MESSAGES = [
+  "Set one goal for the week and I'll nudge you toward it each time we chat.",
+  "Kick things off by telling me what you're building — I'll map the steps with you.",
+  "Drop your current challenge into chat and let's co-create the solution.",
+  "Pin me in your browser and treat av9Assist like your creative whiteboard on demand.",
+  "Try starting with ‘/plan’ + your project idea to get a structured plan in seconds."
+]
+
+const ONBOARDING_TIPS = [
+  "Pro tip: Press Ctrl+Enter (Cmd+Enter on Mac) to send messages instantly.",
+  "Pro tip: Use /remember to store project context I can recall later.",
+  "Shortcut: Drag images into the chat — I'll analyze them right away.",
+  "Speed boost: Summon past answers with /history to keep momentum.",
+  "Customise: Try dark mode from the sidebar for late-night focus sessions."
+]
+
+const MILESTONE_TITLES = [
+  "Here's your personalized jumpstart:",
+  "Kickoff checklist built for you:",
+  "Three moves to make right now:",
+  "Your first-week momentum plan:",
+  "Unlock your flow with these quick wins:"
+]
+
+const MILESTONE_POOL = [
+  { icon: '⚡', text: 'Bookmark favourite prompts with /bookmark so you can reuse them on demand.' },
+  { icon: '🧠', text: 'Create a knowledge pack with /remember to keep key facts handy.' },
+  { icon: '🎯', text: 'Use /plan to break down a project into milestones and daily actions.' },
+  { icon: '🖼️', text: 'Upload a design or screenshot — I\'ll critique, summarise, or extract text.' },
+  { icon: '🗂️', text: 'Label chats with /tag to organise updates across teams or clients.' },
+  { icon: '🔁', text: 'Ask me to “rewrite this more friendly” to iterate on copy instantly.' },
+  { icon: '📌', text: 'Pin av9Assist as a desktop app for one-tap access all day.' },
+  { icon: '⌛', text: 'Schedule daily reminders with /daily so progress stays visible.' }
+]
+
+const ACTION_LABELS = [
+  'Open av9Assist',
+  'Jump back into chat',
+  'Start your first conversation',
+  'Continue building with av9Assist',
+  'Launch your workspace'
+]
+
+const SIGNATURE_TITLES = [
+  "We're cheering for you every step of the way.",
+  'Big leaps start with small prompts. I\'ve got your back.',
+  'Reply to this email with your goal — we read every message.',
+  'Momentum loves company. Let\'s keep yours going.',
+  'Your breakthroughs are why we built av9Assist.'
+]
+
+const SIGNATURE_NAMES = [
+  'Team av9Assist',
+  'Your av9Assist Crew',
+  'The av9Assist Studio',
+  'av9Assist Support',
+  'The av9Assist Builders'
+]
+
+const UPDATE_FEATURE_POOL = [
+  { icon: '🧠', title: 'Context upgrades', description: 'Longer conversations stay sharp with smarter memory cues.' },
+  { icon: '⚙️', title: 'Workflow recipes', description: 'Save multi-step prompts as reusable templates for your team.' },
+  { icon: '🎨', title: 'Visual polish', description: 'Cleaner UI, adaptive themes, and better accessibility out of the box.' },
+  { icon: '🔍', title: 'Instant research', description: 'Drop in URLs or PDFs and get bullet-friendly summaries instantly.' },
+  { icon: '🤝', title: 'Collaboration spaces', description: 'Share chats, annotate feedback, and keep everyone aligned.' },
+  { icon: '🚀', title: 'Performance boost', description: 'Faster responses and more reliable uptime wherever you log in.' }
+]
+
+function formatNameFromEmail(email = '') {
+  const base = email.split('@')[0] || 'there'
+  return base
+    .replace(/[._-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
+function hashEmail(email = '') {
+  let hash = 0
+  for (let i = 0; i < email.length; i += 1) {
+    hash = (hash << 5) - hash + email.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+function pickFrom(array, hash, offset = 0) {
+  if (!array.length) return undefined
+  return array[(hash + offset) % array.length]
+}
+
+function pickMultiple(array, hash, count) {
+  if (!array.length) return []
+  const items = [...array]
+  const result = []
+  let localHash = hash
+
+  for (let i = 0; i < count && items.length; i += 1) {
+    localHash = (localHash * 31 + i) >>> 0
+    const index = localHash % items.length
+    result.push(items.splice(index, 1)[0])
+  }
+
+  return result
+}
+
+function buildWelcomePersonalization(email) {
+  const hash = hashEmail(email)
+  const name = formatNameFromEmail(email)
+
+  return {
+    greeting: `Welcome aboard, ${name}!`,
+    introHighlight: pickFrom(INTRO_HIGHLIGHTS, hash) || INTRO_HIGHLIGHTS[0],
+    heroTitle: pickFrom(HERO_TITLE_VARIANTS, hash >> 1) || HERO_TITLE_VARIANTS[0],
+    heroSubtitle: pickFrom(HERO_SUBTITLE_VARIANTS, hash >> 3) || HERO_SUBTITLE_VARIANTS[0],
+    milestoneTitle: pickFrom(MILESTONE_TITLES, hash >> 5) || MILESTONE_TITLES[0],
+    milestoneItems: pickMultiple(MILESTONE_POOL, hash >> 7, 3),
+    actionLabel: pickFrom(ACTION_LABELS, hash >> 9) || ACTION_LABELS[0],
+    onboardingMessage: pickFrom(ONBOARDING_MESSAGES, hash >> 11) || ONBOARDING_MESSAGES[0],
+    onboardingTip: pickFrom(ONBOARDING_TIPS, hash >> 13) || ONBOARDING_TIPS[0],
+    signatureTitle: pickFrom(SIGNATURE_TITLES, hash >> 15) || SIGNATURE_TITLES[0],
+    signatureName: pickFrom(SIGNATURE_NAMES, hash >> 17) || SIGNATURE_NAMES[0]
+  }
+}
+
+function buildUpdateFeatures(email, featuresOverride) {
+  if (Array.isArray(featuresOverride) && featuresOverride.length > 0) {
+    return featuresOverride
+  }
+  const hash = hashEmail(email)
+  return pickMultiple(UPDATE_FEATURE_POOL, hash >> 2, 3)
+}
+
 // Email templates
 const EMAIL_TEMPLATES = {
   welcome: {
-    subject: '🎉 Hey! Welcome to av9Assist - Let\'s Get Started!',
-    getHtml: (email) => `
+    subject: '🌟 Welcome to av9Assist — Your AI Co-Pilot Awaits!',
+    getHtml: (email, personalization = {}) => {
+      const base = buildWelcomePersonalization(email)
+      const {
+        greeting,
+        introHighlight,
+        heroTitle,
+        heroSubtitle,
+        milestoneTitle,
+        milestoneItems,
+        actionLabel,
+        onboardingMessage,
+        onboardingTip,
+        signatureTitle,
+        signatureName
+      } = { ...base, ...personalization }
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'
+      const unsubscribeUrl = `${appUrl}/unsubscribe?email=${encodeURIComponent(email)}`
+      const contactEmail = process.env.GMAIL_USER || 'support@av9assist.com'
+      const steps = Array.isArray(milestoneItems) && milestoneItems.length > 0
+        ? milestoneItems
+        : pickMultiple(MILESTONE_POOL, Date.now(), 3)
+
+      return `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
+          <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>Welcome to av9Assist</title>
           <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.8; color: #2d3748; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; border-radius: 15px 15px 0 0; text-align: center; }
-            .emoji { font-size: 3em; margin-bottom: 10px; }
-            .content { background: #ffffff; padding: 40px 30px; border-radius: 0 0 15px 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-            .feature-box { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 20px; margin: 15px 0; border-radius: 12px; border-left: 5px solid #667eea; }
-            .button { display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 30px; margin: 25px 0; font-weight: bold; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); }
-            .button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6); }
-            .tip { background: #fff8e1; padding: 15px; margin: 10px 0; border-radius: 10px; border-left: 4px solid #ffa726; }
-            .footer { text-align: center; margin-top: 30px; color: #718096; font-size: 13px; padding: 20px; }
+            body { margin:0; padding:0; background-color:#f2f4fb; }
+            table { border-collapse:collapse; }
+            img { border:0; line-height:100%; }
+            @media screen and (max-width: 600px) {
+              .mobile-padding { padding:24px !important; }
+              .full-width { width:100% !important; display:block !important; }
+              .hero-text { font-size:26px !important; line-height:34px !important; }
+              .sub-text { font-size:16px !important; }
+            }
           </style>
+          <!--[if mso]>
+          <style type="text/css">
+            body, table, td { font-family: 'Segoe UI', Arial, sans-serif !important; }
+          </style>
+          <![endif]-->
         </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="emoji">👋</div>
-              <h1 style="margin: 0; font-size: 2.2em;">Hey there, friend!</h1>
-              <p style="margin-top: 10px; font-size: 1.1em; opacity: 0.95;">Welcome to the av9Assist family 💙</p>
-            </div>
-            <div class="content">
-              <p style="font-size: 1.1em;">Wow, we're so excited to have you here! 🎊</p>
-              <p>You've just unlocked your personal AI buddy who's ready to help you crush your goals. Think of me as your friendly sidekick! 🚀</p>
-              
-              <div class="feature-box">
-                <h3 style="margin-top: 0; color: #667eea;">🎯 Here's what we can do together:</h3>
-                <ul style="margin: 10px 0;">
-                  <li>💬 Chat about literally anything (yes, even your random 3am thoughts!)</li>
-                  <li>🖼️ Analyze images and get instant insights</li>
-                  <li>✨ Brainstorm creative ideas together</li>
-                  <li>💡 Solve problems and answer your burning questions</li>
-                </ul>
-              </div>
-
-              <div style="text-align: center;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/chat" class="button">
-                  🚀 Let's Chat!
-                </a>
-              </div>
-
-              <div class="tip">
-                <strong>🔥 Pro tip:</strong> Press Ctrl+Enter to send messages faster. You're gonna love it!
-              </div>
-
-              <p style="margin-top: 30px;">Got questions? Feeling stuck? Just hit me up in the chat - I'm here for you! 😊</p>
-              
-              <p style="margin-top: 25px; font-size: 1.05em;">
-                Can't wait to get started!<br>
-                <strong>Your AI Friend 🤖</strong><br>
-                <span style="color: #667eea;">av9Assist Team</span>
-              </p>
-            </div>
-            <div class="footer">
-              <p>You're getting this because you joined av9Assist. Pretty cool, right? 😎</p>
-              <p style="margin-top: 10px;">Don't want these emails? <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #667eea; text-decoration: underline;">Unsubscribe here</a></p>
-              <p style="margin-top: 10px; font-size: 12px; color: #a0aec0;">av9Assist | AI Assistant Platform | <a href="mailto:${process.env.GMAIL_USER || 'support@av9assist.com'}" style="color: #667eea;">Contact Us</a></p>
-              <p style="margin-top: 5px;">© 2025 av9Assist - Made with ❤️ for awesome people like you</p>
-            </div>
-          </div>
+        <body style="margin:0; padding:0; background-color:#f2f4fb;">
+          <center style="width:100%; background-color:#f2f4fb; padding:32px 0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:640px; margin:0 auto;">
+              <tr>
+                <td style="padding:0 20px;" class="mobile-padding">
+                  <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="background:#ffffff; border-radius:24px; overflow:hidden; box-shadow:0 18px 45px rgba(76, 81, 191, 0.18);">
+                    <tr>
+                      <td style="background:linear-gradient(135deg,#5c6cff 0%,#8f53ff 100%); padding:48px 40px; text-align:left; color:#ffffff;">
+                        <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
+                          <tr>
+                            <td style="font-size:16px; letter-spacing:0.4px; opacity:0.9; text-transform:uppercase; font-weight:600;">${greeting}</td>
+                          </tr>
+                          <tr>
+                            <td class="hero-text" style="padding-top:16px; font-size:30px; line-height:38px; font-weight:700; font-family:'Segoe UI', Arial, sans-serif;">${heroTitle}</td>
+                          </tr>
+                          <tr>
+                            <td class="sub-text" style="padding-top:14px; font-size:18px; line-height:28px; opacity:0.92; font-family:'Segoe UI', Arial, sans-serif;">${heroSubtitle}</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:40px 40px 16px; font-family:'Segoe UI', Arial, sans-serif; color:#2d3361; font-size:17px; line-height:28px;">
+                        <strong style="color:#5c6cff;">${introHighlight}</strong>
+                        <p style="margin:18px 0 0;">${onboardingMessage}</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:0 40px 12px;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#f7f9ff 0%,#eef1ff 100%); border-radius:18px;">
+                          <tr>
+                            <td style="padding:28px 28px 10px; font-family:'Segoe UI', Arial, sans-serif; color:#404673; font-size:18px; font-weight:600;">${milestoneTitle}</td>
+                          </tr>
+                          ${steps.map(item => `
+                          <tr>
+                            <td style="padding:12px 28px; font-family:'Segoe UI', Arial, sans-serif; color:#4d5382; font-size:16px; border-top:1px solid rgba(92,108,255,0.12);">
+                              <span style="font-size:20px; margin-right:8px;">${item.icon}</span>${item.text}
+                            </td>
+                          </tr>
+                          `).join('')}
+                          <tr>
+                            <td style="padding:24px 28px 30px; text-align:center;">
+                              <a href="${appUrl}/chat" style="display:inline-block; background:linear-gradient(135deg,#5c6cff 0%,#8f53ff 100%); color:#ffffff; text-decoration:none; padding:14px 36px; border-radius:38px; font-family:'Segoe UI', Arial, sans-serif; font-size:16px; font-weight:600; box-shadow:0 10px 24px rgba(92,108,255,0.35);">
+                                ${actionLabel} →
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:18px 40px 32px; font-family:'Segoe UI', Arial, sans-serif; color:#555b87; font-size:15px; line-height:24px; background:#f9f9fe;">
+                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                          <tr>
+                            <td style="padding-bottom:12px; font-size:15px; font-weight:600; color:#5c6cff;">Quick boost</td>
+                          </tr>
+                          <tr>
+                            <td style="padding-bottom:18px;">${onboardingTip}</td>
+                          </tr>
+                          <tr>
+                            <td style="font-size:14px; color:#7b80a7;">${signatureTitle}<br /><strong style="color:#414675;">${signatureName}</strong></td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding:28px 40px 36px; text-align:center; font-family:'Segoe UI', Arial, sans-serif; font-size:13px; line-height:20px; color:#8690c0;">
+                        <p style="margin:0 0 12px;">You\'re receiving this email because you created an av9Assist account. If this wasn\'t you, let us know right away.</p>
+                        <p style="margin:0 0 12px;">Need help? <a href="mailto:${contactEmail}" style="color:#5c6cff; text-decoration:none;">Contact our team</a></p>
+                        <p style="margin:0 0 12px;">Prefer fewer emails? <a href="${unsubscribeUrl}" style="color:#5c6cff; text-decoration:underline;">Update your preferences</a></p>
+                        <p style="margin:12px 0 0; font-size:12px; color:#a1a7d4;">© ${new Date().getFullYear()} av9Assist — Built to accelerate your ideas.</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </center>
         </body>
       </html>
-    `
+      `
+    }
   },
   
   update: {
@@ -315,108 +539,6 @@ const EMAIL_TEMPLATES = {
       </html>
       `
     }
-  },
-
-  neha: {
-    subject: '💝 For My Love - A Special Message Just for You',
-    getHtml: (email) => `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: 'Georgia', 'Times New Roman', serif; line-height: 1.8; color: #2d3748; background: linear-gradient(135deg, #ffeef8 0%, #ffe0f0 100%); }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); color: white; padding: 50px 30px; border-radius: 20px 20px 0 0; text-align: center; position: relative; overflow: hidden; }
-            .header::before { content: '💕'; position: absolute; top: 10px; left: 20px; font-size: 3em; opacity: 0.3; animation: float 3s ease-in-out infinite; }
-            .header::after { content: '💖'; position: absolute; bottom: 10px; right: 20px; font-size: 3em; opacity: 0.3; animation: float 3s ease-in-out infinite 1.5s; }
-            @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
-            .hearts { font-size: 4em; margin-bottom: 15px; animation: heartbeat 1.5s ease-in-out infinite; }
-            @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
-            .content { background: #ffffff; padding: 45px 35px; border-radius: 0 0 20px 20px; box-shadow: 0 8px 20px rgba(255, 107, 157, 0.3); }
-            .love-message { background: linear-gradient(135deg, #fff0f5 0%, #ffe4e9 100%); padding: 30px; margin: 25px 0; border-radius: 15px; border-left: 6px solid #ff6b9d; box-shadow: 0 4px 15px rgba(255, 107, 157, 0.2); }
-            .special-note { background: linear-gradient(135deg, #ffebef 0%, #ffd6dd 100%); padding: 25px; margin: 20px 0; border-radius: 12px; border: 2px dashed #ff6b9d; text-align: center; }
-            .heart-divider { text-align: center; font-size: 2em; color: #ff6b9d; margin: 30px 0; }
-            .button { display: inline-block; padding: 18px 45px; background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%); color: white; text-decoration: none; border-radius: 50px; margin: 30px 0; font-weight: bold; font-size: 1.1em; box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4); transition: all 0.3s; }
-            .button:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(255, 107, 157, 0.6); }
-            .footer { text-align: center; margin-top: 40px; color: #c44569; font-size: 14px; padding: 25px; font-style: italic; }
-            .signature { font-family: 'Brush Script MT', cursive; font-size: 1.8em; color: #ff6b9d; margin-top: 30px; text-align: right; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <div class="hearts">💝</div>
-              <h1 style="margin: 0; font-size: 2.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">To My Dearest Neha</h1>
-              <p style="margin-top: 15px; font-size: 1.3em; opacity: 0.95;">The Light of My Life ✨</p>
-            </div>
-            <div class="content">
-              <p style="font-size: 1.2em; color: #ff6b9d; font-weight: bold; text-align: center;">💕 My Beautiful Love 💕</p>
-              
-              <div class="love-message">
-                <p style="font-size: 1.15em; line-height: 1.9; margin: 0;">
-                  Every time I think of you, my heart fills with joy and warmth. You're not just my girlfriend - you're my best friend, my partner in crime, my everything. ❤️
-                </p>
-                <p style="font-size: 1.15em; line-height: 1.9; margin-top: 20px;">
-                  Your smile brightens my darkest days, your laugh is my favorite sound, and your love gives me strength to be better every single day. 🌹
-                </p>
-              </div>
-
-              <div class="heart-divider">
-                💖 ✨ 💕 ✨ 💖
-              </div>
-
-              <div class="special-note">
-                <h3 style="color: #c44569; margin-top: 0; font-size: 1.5em;">💝 Just So You Know...</h3>
-                <p style="font-size: 1.1em; line-height: 1.8; color: #2d3748;">
-                  <strong>You make me happier</strong> than I ever thought possible.<br>
-                  <strong>You inspire me</strong> to chase my dreams.<br>
-                  <strong>You complete me</strong> in ways words can't describe.<br>
-                  <strong>I love you</strong> more than yesterday, but less than tomorrow! 💗
-                </p>
-              </div>
-
-              <p style="font-size: 1.15em; margin-top: 30px; line-height: 1.9; text-align: center; color: #666;">
-                Every moment with you is a treasure. Every day with you is a blessing. 
-                You're the reason I believe in forever. 💫
-              </p>
-
-              <div class="heart-divider">
-                🌟 💖 🌟
-              </div>
-
-              <div style="background: linear-gradient(135deg, #fff 0%, #ffebef 100%); padding: 25px; border-radius: 12px; margin: 25px 0; text-align: center;">
-                <p style="font-size: 1.1em; margin: 0; color: #c44569;">
-                  <strong>Remember:</strong> No matter where you are or what you're doing,<br>
-                  I'm always thinking of you and loving you with all my heart! 💕
-                </p>
-              </div>
-
-              <div style="text-align: center;">
-                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/chat" class="button">
-                  💬 Let's Chat, My Love!
-                </a>
-              </div>
-
-              <p style="margin-top: 40px; font-size: 1.2em; line-height: 1.8; text-align: center; color: #ff6b9d;">
-                You're my today and all of my tomorrows.<br>
-                I love you to the moon and back! 🌙✨<br>
-                <strong style="font-size: 1.3em;">I LOVE YOU SO MUCH! ❤️❤️❤️</strong>
-              </p>
-
-              <p class="signature">
-                Forever Yours,<br>
-                Abhinav 💕
-              </p>
-            </div>
-            <div class="footer">
-              <p style="font-size: 1.1em; color: #ff6b9d;">💝 This message was crafted with all the love in my heart 💝</p>
-              <p style="margin-top: 15px; color: #c44569;">You + Me = Forever & Always 💖</p>
-              <p style="margin-top: 10px;">© 2025 av9Assist - Made with endless love for Neha 💕</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `
   }
 }
 
@@ -542,10 +664,12 @@ export async function POST(request) {
           let html, subject
 
           if (type === 'welcome') {
-            html = template.getHtml(recipientEmail)
+            const personalization = buildWelcomePersonalization(recipientEmail)
+            html = template.getHtml(recipientEmail, personalization)
             subject = template.subject
           } else if (type === 'update') {
-            html = template.getHtml(recipientEmail, data?.features || [])
+            const features = buildUpdateFeatures(recipientEmail, data?.features)
+            html = template.getHtml(recipientEmail, features)
             subject = template.subject
           } else if (type === 'engagement') {
             html = template.getHtml(recipientEmail, data?.daysSinceActive || 7)
@@ -580,11 +704,7 @@ export async function POST(request) {
       )
     }
 
-    // Check if email contains "neha" - send special romantic email
-    const isNeha = email.toLowerCase().includes('neha')
-    const emailType = isNeha ? 'neha' : type
-    
-    const template = EMAIL_TEMPLATES[emailType]
+    const template = EMAIL_TEMPLATES[type]
     if (!template) {
       return NextResponse.json(
         { error: 'Invalid email type' },
@@ -595,19 +715,18 @@ export async function POST(request) {
     let html
     let subject
     
-    if (emailType === 'neha') {
-      html = template.getHtml(email)
+    if (type === 'welcome') {
+      const personalization = buildWelcomePersonalization(email)
+      html = template.getHtml(email, personalization)
       subject = template.subject
-    } else if (emailType === 'welcome') {
-      html = template.getHtml(email)
+    } else if (type === 'update') {
+      const features = buildUpdateFeatures(email, data?.features)
+      html = template.getHtml(email, features)
       subject = template.subject
-    } else if (emailType === 'update') {
-      html = template.getHtml(email, data?.features || [])
-      subject = template.subject
-    } else if (emailType === 'engagement') {
+    } else if (type === 'engagement') {
       html = template.getHtml(email, data?.daysSinceActive || 7)
       subject = template.subject
-    } else if (emailType === 'daily') {
+    } else if (type === 'daily') {
       const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
       html = template.getHtml(email, data)
       subject = template.subject(today)
@@ -687,37 +806,25 @@ export async function GET(request) {
       }
 
       try {
-        // Check if email contains "neha" - send special romantic email instead
-        const isNeha = user.email.toLowerCase().includes('neha')
-        const emailType = isNeha ? 'neha' : type
-        
-        const template = EMAIL_TEMPLATES[emailType]
+        const template = EMAIL_TEMPLATES[type]
         let html
         let subject
 
-        if (emailType === 'neha') {
-          // Always send romantic email to Neha, regardless of broadcast type
-          html = template.getHtml(user.email)
+        if (type === 'welcome') {
+          const personalization = buildWelcomePersonalization(user.email)
+          html = template.getHtml(user.email, personalization)
           subject = template.subject
-        } else if (emailType === 'welcome') {
-          html = template.getHtml(user.email)
-          subject = template.subject
-        } else if (emailType === 'update') {
-          // Default features for update email
-          const features = [
-            { icon: '🧠', title: 'Smarter AI', description: 'Enhanced responses with better context understanding' },
-            { icon: '⚡', title: 'Faster Performance', description: 'Optimized for lightning-fast interactions' },
-            { icon: '🎨', title: 'Better UI', description: 'Cleaner interface for a smoother experience' }
-          ]
+        } else if (type === 'update') {
+          const features = buildUpdateFeatures(user.email)
           html = template.getHtml(user.email, features)
           subject = template.subject
-        } else if (emailType === 'engagement') {
+        } else if (type === 'engagement') {
           const lastActive = new Date(user.lastActive)
           const now = new Date()
           const daysSinceActive = Math.floor((now - lastActive) / (1000 * 60 * 60 * 24))
           html = template.getHtml(user.email, daysSinceActive)
           subject = template.subject
-        } else if (emailType === 'daily') {
+        } else if (type === 'daily') {
           const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
           html = template.getHtml(user.email)
           subject = template.subject(today)
@@ -725,7 +832,7 @@ export async function GET(request) {
 
         await sendEmailWithGmail(user.email, subject, html)
         sent++
-        results.push({ email: user.email, status: 'sent', type: emailType })
+        results.push({ email: user.email, status: 'sent', type })
       } catch (error) {
         console.error(`❌ Failed to send email to ${user.email}:`, error.message)
         failed++
