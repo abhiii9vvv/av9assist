@@ -17,13 +17,22 @@ export default function LandingPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [emailError, setEmailError] = useState("")
+  const [hasStoredEmail, setHasStoredEmail] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("av9assist_user_email")
-    if (storedEmail) setEmail(storedEmail)
+    if (storedEmail) {
+      setEmail(storedEmail)
+      setHasStoredEmail(true)
+    }
     router.prefetch?.("/chat")
   }, []) // Empty dependency array - only run once on mount
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value)
+    setEmailError("")
+  }
 
   const handleStartChat = async () => {
     if (!email.trim()) {
@@ -121,18 +130,17 @@ export default function LandingPage() {
 
           {/* Email Input or Start Button */}
           <div className="space-y-4 pt-4">
-            {!email.trim() ? (
+            {!hasStoredEmail ? (
               // Show email input when no email is stored
               <>
                 <div className="space-y-2">
                   <Input
                     type="email"
+                    name="email"
+                    autoComplete="email"
                     placeholder="Enter your email"
                     value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value)
-                      setEmailError("")
-                    }}
+                    onChange={handleEmailChange}
                     onKeyDown={(e) => e.key === 'Enter' && handleStartChat()}
                     className="h-12 text-center border-2 border-primary/20 focus:border-primary/50 transition-colors"
                     disabled={isLoading}
@@ -142,9 +150,27 @@ export default function LandingPage() {
                   )}
                 </div>
 
-                <div className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-lg">
-                  <p className="text-sm text-muted-foreground">Please enter your email to continue</p>
-                </div>
+                <Button
+                  onClick={handleStartChat}
+                  disabled={isLoading || !email.trim()}
+                  className="w-full h-12 text-base gap-2 relative overflow-hidden"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="relative w-5 h-5">
+                        <div className="absolute inset-0 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="absolute inset-1 border-2 border-white/20 border-b-white rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+                      </div>
+                      <span>Launching...</span>
+                    </span>
+                  ) : (
+                    <>
+                      Start Chatting
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
               </>
             ) : (
               // Show only Start Chatting button when email exists
@@ -152,6 +178,16 @@ export default function LandingPage() {
                 <div className="text-center space-y-2 mb-4">
                   <p className="text-sm text-muted-foreground">Welcome back!</p>
                   <p className="font-medium text-base">{email}</p>
+                  <button
+                    onClick={() => {
+                      setHasStoredEmail(false)
+                      setEmail("")
+                      localStorage.removeItem("av9assist_user_email")
+                    }}
+                    className="text-xs text-muted-foreground hover:text-foreground underline"
+                  >
+                    Use different email
+                  </button>
                 </div>
                 
                 <Button
