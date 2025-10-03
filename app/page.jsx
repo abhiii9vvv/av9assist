@@ -112,59 +112,77 @@ export default function LandingPage() {
           {/* Heading */}
           <div className="space-y-3">
             <h1 className="text-4xl font-bold tracking-tight">
-              av9 Assist
+              av9Assist
             </h1>
             <p className="text-muted-foreground text-lg">
               Your intelligent AI companion, always ready to assist
             </p>
           </div>
 
-          {/* Email Input */}
+          {/* Email Input or Start Button */}
           <div className="space-y-4 pt-4">
-            <div className="space-y-2">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  setEmailError("")
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && handleStartChat()}
-                className="h-12 text-center border-2 border-primary/20 focus:border-primary/50 transition-colors"
-                disabled={isLoading}
-              />
-              {emailError && (
-                <p className="text-sm text-destructive">{emailError}</p>
-              )}
-            </div>
+            {!email.trim() ? (
+              // Show email input when no email is stored
+              <>
+                <div className="space-y-2">
+                  <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      setEmailError("")
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleStartChat()}
+                    className="h-12 text-center border-2 border-primary/20 focus:border-primary/50 transition-colors"
+                    disabled={isLoading}
+                  />
+                  {emailError && (
+                    <p className="text-sm text-destructive">{emailError}</p>
+                  )}
+                </div>
 
-            {email.trim() ? (
-              <Button
-                onClick={handleStartChat}
-                disabled={isLoading}
-                className="w-full h-12 text-base gap-2 relative overflow-hidden"
-                size="lg"
-              >
-                {isLoading ? (
-                  <span className="flex items-center gap-2">
-                    <div className="relative w-5 h-5">
-                      <div className="absolute inset-0 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <div className="absolute inset-1 border-2 border-white/20 border-b-white rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
-                    </div>
-                    <span>Launching...</span>
-                  </span>
-                ) : (
-                  <>
-                    Start Chatting
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
+                <div className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-lg">
+                  <p className="text-sm text-muted-foreground">Please enter your email to continue</p>
+                </div>
+              </>
             ) : (
-              <div className="w-full h-12 flex items-center justify-center border-2 border-dashed border-muted-foreground/30 rounded-lg">
-                <p className="text-sm text-muted-foreground">Please enter your email to continue</p>
-              </div>
+              // Show only Start Chatting button when email exists
+              <>
+                <div className="text-center space-y-2 mb-4">
+                  <p className="text-sm text-muted-foreground">Welcome back!</p>
+                  <p className="font-medium text-base">{email}</p>
+                </div>
+                
+                <Button
+                  onClick={handleStartChat}
+                  disabled={isLoading}
+                  className="w-full h-12 text-base gap-2 relative overflow-hidden"
+                  size="lg"
+                >
+                  {isLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="relative w-5 h-5">
+                        <div className="absolute inset-0 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="absolute inset-1 border-2 border-white/20 border-b-white rounded-full animate-spin" style={{animationDirection: 'reverse', animationDuration: '1.5s'}}></div>
+                      </div>
+                      <span>Launching...</span>
+                    </span>
+                  ) : (
+                    <>
+                      Start Chatting
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+
+                <button
+                  onClick={() => setEmail('')}
+                  className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors mt-2"
+                >
+                  Use a different email
+                </button>
+              </>
             )}
           </div>
 
