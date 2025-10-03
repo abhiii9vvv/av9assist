@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { 
   Mail, Users, Send, AlertCircle, CheckCircle, Loader2, 
   UserPlus, Activity, TrendingUp, Clock, Filter, Search,
@@ -28,6 +29,7 @@ export default function AdminPage() {
   const [selectedUsers, setSelectedUsers] = useState([])
   const [emailType, setEmailType] = useState('welcome')
   const [selectAll, setSelectAll] = useState(false)
+  const [showEmailTypeDialog, setShowEmailTypeDialog] = useState(false)
 
   const loadUsers = async () => {
     setLoading(true)
@@ -384,72 +386,6 @@ export default function AdminPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-6 space-y-6">
-            
-            {/* Email Type Selector */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Email Type</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <button
-                  onClick={() => setEmailType('welcome')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    emailType === 'welcome'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/30'
-                  }`}
-                >
-                  <UserPlus className={`h-6 w-6 mx-auto mb-2 ${emailType === 'welcome' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className={`text-sm font-medium ${emailType === 'welcome' ? 'text-primary' : ''}`}>
-                    Welcome
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">Onboarding</p>
-                </button>
-
-                <button
-                  onClick={() => setEmailType('update')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    emailType === 'update'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/30'
-                  }`}
-                >
-                  <Bell className={`h-6 w-6 mx-auto mb-2 ${emailType === 'update' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className={`text-sm font-medium ${emailType === 'update' ? 'text-primary' : ''}`}>
-                    Updates
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">New features</p>
-                </button>
-
-                <button
-                  onClick={() => setEmailType('engagement')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    emailType === 'engagement'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/30'
-                  }`}
-                >
-                  <Heart className={`h-6 w-6 mx-auto mb-2 ${emailType === 'engagement' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className={`text-sm font-medium ${emailType === 'engagement' ? 'text-primary' : ''}`}>
-                    Engagement
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">Stay connected</p>
-                </button>
-
-                <button
-                  onClick={() => setEmailType('missing')}
-                  className={`p-4 rounded-lg border-2 transition-all ${
-                    emailType === 'missing'
-                      ? 'border-primary bg-primary/5'
-                      : 'border-border hover:border-primary/30'
-                  }`}
-                >
-                  <Clock className={`h-6 w-6 mx-auto mb-2 ${emailType === 'missing' ? 'text-primary' : 'text-muted-foreground'}`} />
-                  <p className={`text-sm font-medium ${emailType === 'missing' ? 'text-primary' : ''}`}>
-                    Missing You
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">Re-engage</p>
-                </button>
-              </div>
-            </div>
 
             {/* User Selection */}
             <div className="space-y-3">
@@ -539,7 +475,13 @@ export default function AdminPage() {
 
             {/* Send Button */}
             <Button
-              onClick={sendToSelectedUsers}
+              onClick={() => {
+                if (selectedUsers.length === 0) {
+                  setMessage({ type: 'error', text: 'Please select at least one user' })
+                  return
+                }
+                setShowEmailTypeDialog(true)
+              }}
               disabled={sendingEmail.loading || selectedUsers.length === 0}
               className="w-full h-12 text-base"
               size="lg"
@@ -552,10 +494,102 @@ export default function AdminPage() {
               ) : (
                 <>
                   <Send className="mr-2 h-5 w-5" />
-                  Send to {selectedUsers.length} Selected User(s)
+                  Send Email to {selectedUsers.length} Selected User(s)
                 </>
               )}
             </Button>
+
+            {/* Email Type Selection Dialog */}
+            <Dialog open={showEmailTypeDialog} onOpenChange={setShowEmailTypeDialog}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Select Email Type</DialogTitle>
+                  <DialogDescription>
+                    Choose which type of email to send to {selectedUsers.length} selected user(s)
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-2 gap-3 py-4">
+                  <button
+                    onClick={() => setEmailType('welcome')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      emailType === 'welcome'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <UserPlus className={`h-8 w-8 mx-auto mb-2 ${emailType === 'welcome' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <p className={`text-sm font-semibold ${emailType === 'welcome' ? 'text-primary' : ''}`}>
+                      Welcome
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Onboarding</p>
+                  </button>
+
+                  <button
+                    onClick={() => setEmailType('update')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      emailType === 'update'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <Bell className={`h-8 w-8 mx-auto mb-2 ${emailType === 'update' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <p className={`text-sm font-semibold ${emailType === 'update' ? 'text-primary' : ''}`}>
+                      Updates
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">New features</p>
+                  </button>
+
+                  <button
+                    onClick={() => setEmailType('engagement')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      emailType === 'engagement'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <Heart className={`h-8 w-8 mx-auto mb-2 ${emailType === 'engagement' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <p className={`text-sm font-semibold ${emailType === 'engagement' ? 'text-primary' : ''}`}>
+                      Engagement
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Stay connected</p>
+                  </button>
+
+                  <button
+                    onClick={() => setEmailType('missing')}
+                    className={`p-4 rounded-lg border-2 transition-all ${
+                      emailType === 'missing'
+                        ? 'border-primary bg-primary/10'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <Clock className={`h-8 w-8 mx-auto mb-2 ${emailType === 'missing' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <p className={`text-sm font-semibold ${emailType === 'missing' ? 'text-primary' : ''}`}>
+                      Missing You
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">Re-engage</p>
+                  </button>
+                </div>
+                <DialogFooter className="flex-col sm:flex-row gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowEmailTypeDialog(false)}
+                    className="w-full sm:w-auto"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setShowEmailTypeDialog(false)
+                      sendToSelectedUsers()
+                    }}
+                    className="w-full sm:w-auto"
+                  >
+                    <Send className="mr-2 h-4 w-4" />
+                    Send {emailType.charAt(0).toUpperCase() + emailType.slice(1)} Email
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             {/* Info Box */}
             <Alert className="border">
