@@ -393,12 +393,12 @@ export default function AdminPage() {
                   onClick={() => setEmailType('welcome')}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     emailType === 'welcome'
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
-                      : 'border-border hover:border-blue-300'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/30'
                   }`}
                 >
-                  <UserPlus className={`h-6 w-6 mx-auto mb-2 ${emailType === 'welcome' ? 'text-blue-500' : 'text-muted-foreground'}`} />
-                  <p className={`text-sm font-medium ${emailType === 'welcome' ? 'text-blue-700 dark:text-blue-400' : ''}`}>
+                  <UserPlus className={`h-6 w-6 mx-auto mb-2 ${emailType === 'welcome' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-medium ${emailType === 'welcome' ? 'text-primary' : ''}`}>
                     Welcome
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Onboarding</p>
@@ -408,12 +408,12 @@ export default function AdminPage() {
                   onClick={() => setEmailType('update')}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     emailType === 'update'
-                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/30'
-                      : 'border-border hover:border-purple-300'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/30'
                   }`}
                 >
-                  <Bell className={`h-6 w-6 mx-auto mb-2 ${emailType === 'update' ? 'text-purple-500' : 'text-muted-foreground'}`} />
-                  <p className={`text-sm font-medium ${emailType === 'update' ? 'text-purple-700 dark:text-purple-400' : ''}`}>
+                  <Bell className={`h-6 w-6 mx-auto mb-2 ${emailType === 'update' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-medium ${emailType === 'update' ? 'text-primary' : ''}`}>
                     Updates
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">New features</p>
@@ -423,12 +423,12 @@ export default function AdminPage() {
                   onClick={() => setEmailType('engagement')}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     emailType === 'engagement'
-                      ? 'border-pink-500 bg-pink-50 dark:bg-pink-950/30'
-                      : 'border-border hover:border-pink-300'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/30'
                   }`}
                 >
-                  <Heart className={`h-6 w-6 mx-auto mb-2 ${emailType === 'engagement' ? 'text-pink-500' : 'text-muted-foreground'}`} />
-                  <p className={`text-sm font-medium ${emailType === 'engagement' ? 'text-pink-700 dark:text-pink-400' : ''}`}>
+                  <Heart className={`h-6 w-6 mx-auto mb-2 ${emailType === 'engagement' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-medium ${emailType === 'engagement' ? 'text-primary' : ''}`}>
                     Engagement
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Stay connected</p>
@@ -438,12 +438,12 @@ export default function AdminPage() {
                   onClick={() => setEmailType('missing')}
                   className={`p-4 rounded-lg border-2 transition-all ${
                     emailType === 'missing'
-                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/30'
-                      : 'border-border hover:border-orange-300'
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/30'
                   }`}
                 >
-                  <Clock className={`h-6 w-6 mx-auto mb-2 ${emailType === 'missing' ? 'text-orange-500' : 'text-muted-foreground'}`} />
-                  <p className={`text-sm font-medium ${emailType === 'missing' ? 'text-orange-700 dark:text-orange-400' : ''}`}>
+                  <Clock className={`h-6 w-6 mx-auto mb-2 ${emailType === 'missing' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-medium ${emailType === 'missing' ? 'text-primary' : ''}`}>
                     Missing You
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">Re-engage</p>
@@ -454,7 +454,7 @@ export default function AdminPage() {
             {/* User Selection */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold">Select Users</Label>
+                <Label className="text-base font-semibold">Select Users ({filteredUsers.length})</Label>
                 <Button
                   variant="outline"
                   size="sm"
@@ -465,41 +465,69 @@ export default function AdminPage() {
                 </Button>
               </div>
 
-              <div className="max-h-96 overflow-y-auto border-2 rounded-lg p-3 space-y-2">
-                {filteredUsers.map((user) => (
-                  <div
-                    key={user.email}
-                    onClick={() => toggleUserSelection(user.email)}
-                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      selectedUsers.includes(user.email)
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                        selectedUsers.includes(user.email)
-                          ? 'bg-primary border-primary'
-                          : 'border-muted-foreground'
-                      }`}>
-                        {selectedUsers.includes(user.email) && (
-                          <CheckCircle className="h-4 w-4 text-white" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{user.email}</p>
-                        <div className="flex gap-2 mt-1">
-                          {user.emailPreferences?.updates && (
-                            <Badge variant="secondary" className="text-xs">Updates</Badge>
-                          )}
-                          {user.emailPreferences?.engagement && (
-                            <Badge variant="secondary" className="text-xs">Engagement</Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="max-h-96 overflow-y-auto border rounded-lg">
+                <table className="w-full">
+                  <thead className="bg-muted/50 sticky top-0">
+                    <tr className="border-b">
+                      <th className="w-12 p-3 text-left">
+                        <input
+                          type="checkbox"
+                          checked={selectAll}
+                          onChange={handleSelectAll}
+                          className="w-4 h-4 rounded cursor-pointer"
+                        />
+                      </th>
+                      <th className="p-3 text-left text-sm font-semibold">Email</th>
+                      <th className="p-3 text-left text-sm font-semibold hidden md:table-cell">Joined</th>
+                      <th className="p-3 text-left text-sm font-semibold hidden md:table-cell">Preferences</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((user, index) => (
+                      <tr
+                        key={user.email}
+                        onClick={() => toggleUserSelection(user.email)}
+                        className={`border-b cursor-pointer transition-colors hover:bg-muted/30 ${
+                          selectedUsers.includes(user.email) ? 'bg-primary/5' : ''
+                        }`}
+                      >
+                        <td className="p-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedUsers.includes(user.email)}
+                            onChange={() => toggleUserSelection(user.email)}
+                            className="w-4 h-4 rounded cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-sm font-semibold">
+                              {user.email[0].toUpperCase()}
+                            </div>
+                            <span className="font-medium text-sm">{user.email}</span>
+                          </div>
+                        </td>
+                        <td className="p-3 text-sm text-muted-foreground hidden md:table-cell">
+                          {new Date(user.joinedAt).toLocaleDateString()}
+                        </td>
+                        <td className="p-3 hidden md:table-cell">
+                          <div className="flex gap-1 flex-wrap">
+                            {user.emailPreferences?.updates && (
+                              <Badge variant="secondary" className="text-xs">Updates</Badge>
+                            )}
+                            {user.emailPreferences?.engagement && (
+                              <Badge variant="secondary" className="text-xs">Engagement</Badge>
+                            )}
+                            {user.emailPreferences?.tips && (
+                              <Badge variant="secondary" className="text-xs">Tips</Badge>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
                 
                 {filteredUsers.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
@@ -530,9 +558,9 @@ export default function AdminPage() {
             </Button>
 
             {/* Info Box */}
-            <Alert className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-sm text-blue-900 dark:text-blue-300">
+            <Alert className="border">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-sm">
                 <strong>Note:</strong> Onboarding (Welcome) emails are automatically sent to new users on their first login. 
                 You can manually resend them here if needed.
               </AlertDescription>
