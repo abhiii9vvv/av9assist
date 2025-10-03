@@ -1502,12 +1502,12 @@ export default function ChatPage() {
 
         {/* Input Area - Fixed at bottom */}
         <div className={cn(
-          "fixed bottom-0 left-0 right-0 border-t bg-card z-20 pb-safe shadow-inner transition-all duration-300",
+          "fixed bottom-0 left-0 right-0 border-t bg-white dark:bg-slate-950 z-20 pb-safe shadow-inner transition-all duration-300",
           isMobileKeyboardVisible && "pb-2"
         )}>
           <div className="container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-6xl">
             <FadeTransition>
-              <Card className="p-1 sm:p-2 bg-card border border-border shadow-lg transition-all duration-300" role="region" aria-label="Message input area">
+              <Card className="p-1 sm:p-2 bg-white dark:bg-slate-950 border border-border shadow-lg transition-all duration-300" role="region" aria-label="Message input area">
                 {/* Image preview */}
                 {imagePreview && (
                   <div className="mb-2 relative inline-block">
@@ -1542,9 +1542,9 @@ export default function ChatPage() {
                   {/* Image attachment button */}
                   <Button
                     onClick={() => fileInputRef.current?.click()}
-                    variant="secondary"
+                    variant="outline"
                     size="icon"
-                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0"
+                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
                     title="Upload image (PNG, JPG - Max 5MB)"
                     aria-label="Upload image"
                   >
@@ -1559,7 +1559,7 @@ export default function ChatPage() {
                       onFocus={() => setIsInputFocused(true)}
                       onBlur={() => setIsInputFocused(false)}
                       placeholder="Type your message..."
-                      className={`min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border border-border bg-muted focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none ${
+                      className={`min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border border-border bg-white dark:bg-slate-950 focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none ${
                         inputError ? "border-red-500 focus-visible:ring-red-500" : ""
                       }`}
                       disabled={false}
@@ -1584,9 +1584,9 @@ export default function ChatPage() {
                             }
                           }
                         }}
-                        variant="secondary"
+                        variant="outline"
                         size="icon"
-                        className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0"
+                        className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800"
                         title="Clear draft"
                         aria-label="Clear message draft"
                       >
