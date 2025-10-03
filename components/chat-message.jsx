@@ -412,7 +412,7 @@ export const ChatMessage = memo(function ChatMessage({
                 hr: (props) => <hr className="my-6 border-0 h-px bg-gradient-to-r from-transparent via-border/60 to-transparent" {...props} />,
                 a: ({ node, ...props }) => (
                   <a
-                    className="text-primary hover:text-primary/80 underline underline-offset-4 hover:underline-offset-2 decoration-2 transition-all duration-300 break-words break-all max-w-none font-medium hover:bg-primary/5 px-1 py-0.5 rounded"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline underline-offset-4 hover:underline-offset-2 decoration-2 transition-all duration-300 break-words break-all max-w-none font-medium hover:bg-blue-500/10 px-1 py-0.5 rounded cursor-pointer"
                     target="_blank"
                     rel="noreferrer"
                     {...props}
