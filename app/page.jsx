@@ -23,7 +23,7 @@ export default function LandingPage() {
     const storedEmail = localStorage.getItem("av9assist_user_email")
     if (storedEmail) setEmail(storedEmail)
     router.prefetch?.("/chat")
-  }, [router])
+  }, []) // Empty dependency array - only run once on mount
 
   const handleStartChat = async () => {
     if (!email.trim()) {
