@@ -73,8 +73,6 @@ export default function ChatPage() {
   const [editingContent, setEditingContent] = useState("")
   const [inputError, setInputError] = useState("")
   const [isInputFocused, setIsInputFocused] = useState(false)
-  const [showNavbar, setShowNavbar] = useState(true)
-  const [lastScrollY, setLastScrollY] = useState(0)
   const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
@@ -182,28 +180,6 @@ export default function ChatPage() {
       setShowPrivacyNotice(true)
     }
   }, [])
-
-  // Handle navbar hide/show on scroll
-  useEffect(() => {
-    const scrollContainer = document.getElementById('chat-scroll-area')
-    if (!scrollContainer) return
-
-    const handleScroll = () => {
-      const currentScrollY = scrollContainer.scrollTop
-      
-      // Show navbar when scrolling up, hide when scrolling down
-      if (currentScrollY < lastScrollY || currentScrollY < 50) {
-        setShowNavbar(true)
-      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setShowNavbar(false)
-      }
-      
-      setLastScrollY(currentScrollY)
-    }
-
-    scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
-    return () => scrollContainer.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY])
 
   // Handle privacy notice acceptance with celebration animation
   const handlePrivacyNoticeAccept = () => {
@@ -1326,7 +1302,7 @@ export default function ChatPage() {
         {statusMessage}
       </div>
       {/* Header - Sticky with slide animation */}
-      <header className={`border-b bg-gradient-to-r from-background via-card/95 to-background backdrop-blur-md sticky top-0 z-50 shadow-lg shrink-0 transition-transform duration-300 ${showNavbar ? 'translate-y-0' : '-translate-y-full'}`}>
+      <header className="border-b bg-gradient-to-r from-background via-card/95 to-background backdrop-blur-md sticky top-0 z-50 shadow-lg shrink-0">
         <div className="container mx-auto px-1 sm:px-2 py-2 sm:py-3 flex items-center justify-between max-w-6xl">
           <div className="flex items-center gap-1 sm:gap-2 min-w-0">
             <Button
