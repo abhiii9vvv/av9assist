@@ -47,7 +47,7 @@ export async function POST(request) {
     if (isNewUser) {
       try {
         // Send welcome email asynchronously (don't wait for it)
-        fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/send-email`, {
+        fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'https://av9assist.vercel.app'}/api/send-email`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
