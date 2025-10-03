@@ -25,6 +25,9 @@ export default function AdminPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterPreference, setFilterPreference] = useState('all')
   const [sendingEmail, setSendingEmail] = useState({ type: '', loading: false })
+  const [selectedUsers, setSelectedUsers] = useState([])
+  const [emailType, setEmailType] = useState('welcome')
+  const [selectAll, setSelectAll] = useState(false)
 
   const loadUsers = async () => {
     setLoading(true)
@@ -116,6 +119,79 @@ export default function AdminPage() {
       })
     }
     
+    setSendingEmail({ type: '', loading: false })
+  }
+
+  // Toggle select all users
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedUsers([])
+    } else {
+      setSelectedUsers(filteredUsers.map(u => u.email))
+    }
+    setSelectAll(!selectAll)
+  }
+
+  // Toggle individual user selection
+  const toggleUserSelection = (email) => {
+    setSelectedUsers(prev => 
+      prev.includes(email) 
+        ? prev.filter(e => e !== email)
+        : [...prev, email]
+    )
+  }
+
+  // Send emails to selected users
+  const sendToSelectedUsers = async () => {
+    if (selectedUsers.length === 0) {
+      setMessage({ type: 'error', text: 'Please select at least one user' })
+      return
+    }
+
+    const emailTypeNames = {
+      welcome: 'Welcome (Onboarding)',
+      update: 'Update',
+      engagement: 'Engagement',
+      custom: 'Custom'
+    }
+
+    if (!confirm(`Send ${emailTypeNames[emailType]} emails to ${selectedUsers.length} selected user(s)?`)) {
+      return
+    }
+
+    setSendingEmail({ type: 'selected', loading: true })
+    setMessage({ type: '', text: '' })
+
+    try {
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: emailType,
+          emails: selectedUsers,
+          adminKey: adminKey
+        })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setMessage({
+          type: 'success',
+          text: `✅ ${emailTypeNames[emailType]} emails sent to ${selectedUsers.length} user(s)!`
+        })
+        setSelectedUsers([])
+        setSelectAll(false)
+      } else {
+        throw new Error(data.error || 'Failed to send emails')
+      }
+    } catch (error) {
+      setMessage({
+        type: 'error',
+        text: `❌ Failed to send emails: ${error.message}`
+      })
+    }
+
     setSendingEmail({ type: '', loading: false })
   }
 
@@ -288,6 +364,181 @@ export default function AdminPage() {
             </Card>
           </div>
         )}
+
+        {/* Email Management Section - NEW */}
+        <Card className="shadow-xl border-2 border-primary/20">
+          <CardHeader className="bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Send className="h-6 w-6 text-primary" />
+                  Email Management
+                </CardTitle>
+                <CardDescription className="text-base mt-1">
+                  Select users and send targeted emails
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="text-base px-3 py-1">
+                {selectedUsers.length} Selected
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
+            
+            {/* Email Type Selector */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Email Type</Label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <button
+                  onClick={() => setEmailType('welcome')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    emailType === 'welcome'
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30'
+                      : 'border-border hover:border-blue-300'
+                  }`}
+                >
+                  <UserPlus className={`h-6 w-6 mx-auto mb-2 ${emailType === 'welcome' ? 'text-blue-500' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-medium ${emailType === 'welcome' ? 'text-blue-700 dark:text-blue-400' : ''}`}>
+                    Welcome
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Onboarding</p>
+                </button>
+
+                <button
+                  onClick={() => setEmailType('update')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    emailType === 'update'
+                      ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/30'
+                      : 'border-border hover:border-purple-300'
+                  }`}
+                >
+                  <Bell className={`h-6 w-6 mx-auto mb-2 ${emailType === 'update' ? 'text-purple-500' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-medium ${emailType === 'update' ? 'text-purple-700 dark:text-purple-400' : ''}`}>
+                    Updates
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">New features</p>
+                </button>
+
+                <button
+                  onClick={() => setEmailType('engagement')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    emailType === 'engagement'
+                      ? 'border-pink-500 bg-pink-50 dark:bg-pink-950/30'
+                      : 'border-border hover:border-pink-300'
+                  }`}
+                >
+                  <Heart className={`h-6 w-6 mx-auto mb-2 ${emailType === 'engagement' ? 'text-pink-500' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-medium ${emailType === 'engagement' ? 'text-pink-700 dark:text-pink-400' : ''}`}>
+                    Engagement
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Stay connected</p>
+                </button>
+
+                <button
+                  onClick={() => setEmailType('missing')}
+                  className={`p-4 rounded-lg border-2 transition-all ${
+                    emailType === 'missing'
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-950/30'
+                      : 'border-border hover:border-orange-300'
+                  }`}
+                >
+                  <Clock className={`h-6 w-6 mx-auto mb-2 ${emailType === 'missing' ? 'text-orange-500' : 'text-muted-foreground'}`} />
+                  <p className={`text-sm font-medium ${emailType === 'missing' ? 'text-orange-700 dark:text-orange-400' : ''}`}>
+                    Missing You
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">Re-engage</p>
+                </button>
+              </div>
+            </div>
+
+            {/* User Selection */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-semibold">Select Users</Label>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSelectAll}
+                  className="h-8"
+                >
+                  {selectAll ? 'Deselect All' : 'Select All'}
+                </Button>
+              </div>
+
+              <div className="max-h-96 overflow-y-auto border-2 rounded-lg p-3 space-y-2">
+                {filteredUsers.map((user) => (
+                  <div
+                    key={user.email}
+                    onClick={() => toggleUserSelection(user.email)}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      selectedUsers.includes(user.email)
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                        selectedUsers.includes(user.email)
+                          ? 'bg-primary border-primary'
+                          : 'border-muted-foreground'
+                      }`}>
+                        {selectedUsers.includes(user.email) && (
+                          <CheckCircle className="h-4 w-4 text-white" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{user.email}</p>
+                        <div className="flex gap-2 mt-1">
+                          {user.emailPreferences?.updates && (
+                            <Badge variant="secondary" className="text-xs">Updates</Badge>
+                          )}
+                          {user.emailPreferences?.engagement && (
+                            <Badge variant="secondary" className="text-xs">Engagement</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {filteredUsers.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No users found
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Send Button */}
+            <Button
+              onClick={sendToSelectedUsers}
+              disabled={sendingEmail.loading || selectedUsers.length === 0}
+              className="w-full h-12 text-base"
+              size="lg"
+            >
+              {sendingEmail.type === 'selected' && sendingEmail.loading ? (
+                <>
+                  <Loader2 className="animate-spin mr-2 h-5 w-5" />
+                  Sending to {selectedUsers.length} user(s)...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-5 w-5" />
+                  Send to {selectedUsers.length} Selected User(s)
+                </>
+              )}
+            </Button>
+
+            {/* Info Box */}
+            <Alert className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+              <AlertCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-sm text-blue-900 dark:text-blue-300">
+                <strong>Note:</strong> Onboarding (Welcome) emails are automatically sent to new users on their first login. 
+                You can manually resend them here if needed.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
 
         {/* Message Alert */}
         {message.text && (

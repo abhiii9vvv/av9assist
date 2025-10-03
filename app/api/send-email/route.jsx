@@ -522,8 +522,57 @@ async function sendEmailWithGmail(to, subject, html) {
 // POST - Send email
 export async function POST(request) {
   try {
-    const { type, email, data } = await request.json()
+    const { type, email, emails, data } = await request.json()
 
+    // Handle multiple emails (from admin dashboard)
+    if (emails && Array.isArray(emails)) {
+      const results = {
+        sent: 0,
+        failed: 0,
+        errors: []
+      }
+
+      for (const recipientEmail of emails) {
+        try {
+          const template = EMAIL_TEMPLATES[type]
+          if (!template) {
+            throw new Error('Invalid email type')
+          }
+
+          let html, subject
+
+          if (type === 'welcome') {
+            html = template.getHtml(recipientEmail)
+            subject = template.subject
+          } else if (type === 'update') {
+            html = template.getHtml(recipientEmail, data?.features || [])
+            subject = template.subject
+          } else if (type === 'engagement') {
+            html = template.getHtml(recipientEmail, data?.daysSinceActive || 7)
+            subject = template.subject
+          } else if (type === 'daily' || type === 'missing') {
+            const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })
+            html = EMAIL_TEMPLATES.daily.getHtml(recipientEmail, data)
+            subject = EMAIL_TEMPLATES.daily.subject(today)
+          }
+
+          await sendEmailWithGmail(recipientEmail, subject, html)
+          results.sent++
+        } catch (error) {
+          console.error(`Failed to send email to ${recipientEmail}:`, error)
+          results.failed++
+          results.errors.push({ email: recipientEmail, error: error.message })
+        }
+      }
+
+      return NextResponse.json({
+        success: results.sent > 0,
+        message: `Sent ${results.sent} emails, ${results.failed} failed`,
+        ...results
+      })
+    }
+
+    // Handle single email
     if (!type || !email) {
       return NextResponse.json(
         { error: 'Email type and recipient are required' },
