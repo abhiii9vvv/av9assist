@@ -59,7 +59,7 @@ export default function UnsubscribePage() {
 
   if (!email) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600">
@@ -77,7 +77,7 @@ export default function UnsubscribePage() {
 
   if (status === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-green-600">
@@ -87,12 +87,12 @@ export default function UnsubscribePage() {
             <CardDescription>{message}</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               We're sad to see you go, but we respect your choice. 💙
             </p>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               You can always come back and chat with us anytime at{' '}
-              <a href="/chat" className="text-purple-600 hover:underline">av9Assist Chat</a>
+              <a href="/chat" className="text-primary hover:underline">av9Assist Chat</a>
             </p>
             <Button 
               onClick={() => window.location.href = '/'}
@@ -107,7 +107,7 @@ export default function UnsubscribePage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Manage Email Preferences</CardTitle>
@@ -117,16 +117,16 @@ export default function UnsubscribePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {status === 'error' && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-              <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
-              <p className="text-sm text-red-800">{message}</p>
+            <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 flex items-start gap-3">
+              <XCircle className="h-5 w-5 text-destructive mt-0.5" />
+              <p className="text-sm text-destructive">{message}</p>
             </div>
           )}
 
           <div className="space-y-3">
-            <h3 className="font-semibold text-sm text-gray-700">Choose what you'd like to receive:</h3>
+            <h3 className="font-semibold text-sm text-foreground">Choose what you'd like to receive:</h3>
             
-            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
               <input
                 type="checkbox"
                 checked={preferences.daily}
@@ -135,11 +135,11 @@ export default function UnsubscribePage() {
               />
               <div>
                 <div className="font-medium text-sm">Daily Motivation 🌅</div>
-                <div className="text-xs text-gray-600">Daily quotes and reminders to keep you motivated</div>
+                <div className="text-xs text-muted-foreground">Daily quotes and reminders to keep you motivated</div>
               </div>
             </label>
 
-            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
               <input
                 type="checkbox"
                 checked={preferences.updates}
@@ -148,11 +148,11 @@ export default function UnsubscribePage() {
               />
               <div>
                 <div className="font-medium text-sm">Product Updates ✨</div>
-                <div className="text-xs text-gray-600">New features and improvements</div>
+                <div className="text-xs text-muted-foreground">New features and improvements</div>
               </div>
             </label>
 
-            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
               <input
                 type="checkbox"
                 checked={preferences.engagement}
@@ -161,11 +161,11 @@ export default function UnsubscribePage() {
               />
               <div>
                 <div className="font-medium text-sm">We Miss You 💙</div>
-                <div className="text-xs text-gray-600">Occasional reminders when you haven't visited</div>
+                <div className="text-xs text-muted-foreground">Occasional reminders when you haven't visited</div>
               </div>
             </label>
 
-            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors">
               <input
                 type="checkbox"
                 checked={preferences.tips}
@@ -174,7 +174,7 @@ export default function UnsubscribePage() {
               />
               <div>
                 <div className="font-medium text-sm">Tips & Tricks 💡</div>
-                <div className="text-xs text-gray-600">Helpful tips to get the most out of av9Assist</div>
+                <div className="text-xs text-muted-foreground">Helpful tips to get the most out of av9Assist</div>
               </div>
             </label>
           </div>
@@ -205,7 +205,7 @@ export default function UnsubscribePage() {
             </Button>
           </div>
 
-          <p className="text-xs text-gray-500 text-center pt-4">
+          <p className="text-xs text-muted-foreground text-center pt-4">
             You'll stop receiving emails within 24 hours. You can still use av9Assist chat anytime!
           </p>
         </CardContent>
