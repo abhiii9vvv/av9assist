@@ -3,6 +3,20 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Smooth theme transition animations */
+* {
+  transition-property: background-color, border-color, color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+/* Disable transitions for elements that shouldn't animate */
+*:where([class*="animate-"], [class*="transition-transform"], [class*="transition-opacity"], [class*="transition-all"]) {
+  transition-property: revert;
+  transition-timing-function: revert;
+  transition-duration: revert;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
