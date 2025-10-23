@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { MessageCircle, User, Bot, Check, Clock, Copy, ThumbsUp, ThumbsDown, RotateCcw, Edit3 } from "lucide-react"
+import { MessageCircle, User, Bot, Check, Clock, Copy, ThumbsUp, ThumbsDown, RotateCcw, Edit3, Volume2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createPortal } from "react-dom"
 import { useState, useEffect, memo } from "react"
@@ -16,6 +16,7 @@ export const ChatMessage = memo(function ChatMessage({
   onEdit,
   isLast = false,
   onFeedback,
+  onAudio,
   isTyping = false,
   showTimestamp = true,
   showActions = true,
@@ -369,6 +370,17 @@ export const ChatMessage = memo(function ChatMessage({
                   />
                 </div>
               )}
+              {/* Display AI generated image if present */}
+              {message.generatedImage && (
+                <div className="mb-3">
+                  <img 
+                    src={message.generatedImage} 
+                    alt="AI Generated" 
+                    className="max-w-full max-h-96 rounded-lg border border-primary/30 shadow-lg hover:shadow-xl transition-shadow duration-200"
+                  />
+                  <p className="text-xs text-muted-foreground mt-2 italic">🎨 AI Generated Image</p>
+                </div>
+              )}
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}
@@ -485,6 +497,16 @@ export const ChatMessage = memo(function ChatMessage({
                 aria-label="Regenerate response"
               >
                 <RotateCcw className="w-4 h-4" />
+              </button>
+            )}
+            {onAudio && message.content && (
+              <button
+                onClick={() => onAudio(message.content)}
+                className="flex items-center justify-center w-8 h-8 rounded-lg bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-md"
+                title="Read aloud"
+                aria-label="Read aloud"
+              >
+                <Volume2 className="w-4 h-4" />
               </button>
             )}
             <button

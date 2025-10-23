@@ -23,6 +23,13 @@ A modern AI chat assistant built with **Next.js 14**, **Tailwind CSS**, and cutt
 - **Copy & Share** - Easily copy any message
 - **Like/Dislike** - Rate responses with visual feedback
 - **Message Regeneration** - Get alternative responses
+- **Multi-Provider Support** - Auto fallback for reliability
+
+### 🎨 Creative AI Features (NEW!)
+- **🪄 AI Image Generation** - Create images from text descriptions
+- **🔊 Text-to-Speech** - Listen to any message with 6 voice options
+- **📸 Image Analysis** - Upload and analyze images with AI
+- **🌸 Pollinations.AI** - Free AI service, no API key required!
 
 ### 🎨 Beautiful Design
 - **Dark/Light Themes** - Choose your preferred mode
@@ -36,6 +43,7 @@ A modern AI chat assistant built with **Next.js 14**, **Tailwind CSS**, and cutt
 - **SEO Friendly** - Better search engine visibility
 - **PWA Ready** - Install as an app
 - **Code Splitting** - Efficient resource loading
+- **Parallel AI Requests** - Fastest response wins!
 
 ## 🚀 Quick Start
 
@@ -54,14 +62,48 @@ npm run dev
 Create `.env.local` with your AI provider keys:
 
 ```env
-# Choose any provider(s)
-GOOGLE_API_KEY=your_gemini_key
-SAMBANOVA_API_KEY=your_sambanova_key
-OPENROUTER_API_KEY=your_openrouter_key
-HF_API_KEY=your_huggingface_key
+# AI Text Providers (at least one recommended)
+GOOGLE_API_KEY=your_gemini_key          # Google Gemini (vision capable)
+GOOGLE_API_KEY_2=your_backup_key        # Backup key (optional)
+GOOGLE_API_KEY_3=your_third_key         # Third backup (optional)
+SAMBANOVA_API_KEY=your_sambanova_key    # SambaNova (fast & free)
+OPENROUTER_API_KEY=your_openrouter_key  # OpenRouter (various models)
+
+# Provider Priority (optional)
+PROVIDERS_ORDER=gemini,sambanova,openrouter,pollinations
+
+# Pollinations.AI (No API key needed - always free!)
+# Automatically included as fallback
 ```
 
-*App works without keys (fallback responses enabled)*
+**Note:** Pollinations.AI works without any API keys! 🎉
+
+*App works even without keys (Pollinations.AI fallback enabled)*
+
+## 🎨 New Feature Guide
+
+### Generate AI Images
+1. Click the **🪄 magic wand** button in the input area
+2. Enter a creative prompt (e.g., "A futuristic city at sunset")
+3. Click "Generate Image"
+4. Image appears in your chat!
+
+### Text-to-Speech
+1. Click the **🔊 speaker** button to choose a voice
+2. Hover over any message
+3. Click the speaker icon to hear it read aloud
+
+### Image Analysis
+1. Click the **📷 camera** button
+2. Upload an image (PNG/JPG, max 5MB)
+3. Ask questions about the image
+
+### Change AI Provider
+1. Click **⚙️ Settings** in the header
+2. Choose your preferred provider
+3. Or use "Auto" for fastest response
+
+📚 **Full Guide:** See [QUICK_START_GUIDE.md](./QUICK_START_GUIDE.md) for detailed instructions!
 
 ## 🌐 Deploy
 
@@ -80,12 +122,26 @@ vercel --prod
 - **Framework**: Next.js 14 (App Router)
 - **Styling**: Tailwind CSS v4
 - **UI**: Radix UI primitives  
-- **AI**: Multi-provider with fallbacks
+- **AI Providers**: 
+  - Google Gemini (vision capable)
+  - SambaNova (fast & free)
+  - OpenRouter (various models)
+  - **Pollinations.AI** (free, no API key required!)
 - **Storage**: Browser localStorage
+- **Additional APIs**:
+  - Pollinations Image Generation
+  - Pollinations Text-to-Speech
 
 ---
 
-*Built with ❤️ for seamless AI conversations*
+## 📚 Documentation
+
+- [Quick Start Guide](./QUICK_START_GUIDE.md) - Get started with new features
+- [Integration Details](./POLLINATIONS_INTEGRATION.md) - Technical implementation
+
+---
+
+*Built with ❤️ for seamless AI conversations and creative possibilities*
 
 ## Deploy
 
