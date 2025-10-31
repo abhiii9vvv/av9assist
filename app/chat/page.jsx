@@ -1741,18 +1741,17 @@ export default function ChatPage() {
                     
                     {/* Attachment Menu Popup */}
                     {showAttachMenu && (
-                      <div className="absolute bottom-full left-0 mb-2 bg-popover border border-border rounded-lg shadow-lg p-2 w-48 z-50">
+                      <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-1 w-48 z-50">
                         <button
                           onClick={() => {
                             fileInputRef.current?.click()
                             setShowAttachMenu(false)
                           }}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors text-left"
                         >
                           <ImageIcon className="w-4 h-4 text-blue-600" />
                           <div>
                             <p className="text-sm font-medium">Upload image</p>
-                            <p className="text-xs text-muted-foreground">Analyze with AI</p>
                           </div>
                         </button>
                         <button
@@ -1769,12 +1768,11 @@ export default function ChatPage() {
                               try { inputRef.current?.focus() } catch {}
                             }, 0)
                           }}
-                          className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors text-left"
                         >
                           <Wand2 className="w-4 h-4 text-purple-600" />
                           <div>
                             <p className="text-sm font-medium">Generate image</p>
-                            <p className="text-xs text-muted-foreground">Create with AI</p>
                           </div>
                         </button>
                       </div>
