@@ -3,15 +3,10 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Bot, ArrowRight, Settings } from "lucide-react"
-
-const DynamicThemeToggle = dynamic(
-  () => import("@/components/theme-toggle").then(mod => ({ default: mod.ThemeToggle })),
-  { ssr: false }
-)
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function LandingPage() {
   const [email, setEmail] = useState("")
@@ -89,7 +84,7 @@ export default function LandingPage() {
                 <span>Admin</span>
               </Button>
             </Link>
-            <DynamicThemeToggle />
+            <ThemeToggle />
           </div>
         </div>
       </header>

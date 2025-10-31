@@ -16,7 +16,6 @@ export const ChatMessage = memo(function ChatMessage({
   onEdit,
   isLast = false,
   onFeedback,
-  onAudio,
   isTyping = false,
   showTimestamp = true,
   showActions = true,
@@ -497,16 +496,6 @@ export const ChatMessage = memo(function ChatMessage({
                 aria-label="Regenerate response"
               >
                 <RotateCcw className="w-4 h-4" />
-              </button>
-            )}
-            {onAudio && message.content && (
-              <button
-                onClick={() => onAudio(message.content)}
-                className="flex items-center justify-center w-8 h-8 rounded-lg bg-background/80 backdrop-blur-sm border border-border/50 hover:bg-background/90 hover:border-primary/30 transition-all duration-300 shadow-sm hover:shadow-md"
-                title="Read aloud"
-                aria-label="Read aloud"
-              >
-                <Volume2 className="w-4 h-4" />
               </button>
             )}
             <button

@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
@@ -14,36 +13,10 @@ import { Send, ArrowLeft, Mic, AlertCircle, History as HistoryIcon, Trash2, Chev
 import { sendMessage, ApiError } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ComponentLoader } from "@/components/loading-spinner"
-import { ChatSkeleton, MessageSkeleton, HeaderSkeleton, InputSkeleton } from "@/components/skeleton-loaders"
 import { useRenderTime } from "@/components/performance-monitor"
-
-// Dynamic imports for better code splitting
-const DynamicThemeToggle = dynamic(
-  () => import("@/components/theme-toggle").then(mod => ({ default: mod.ThemeToggle })),
-  { 
-    loading: () => <div className="w-8 h-8 bg-muted animate-pulse rounded-md" />,
-    ssr: false 
-  }
-)
-
-const DynamicChatMessage = dynamic(
-  () => import("@/components/chat-message").then(mod => ({ default: mod.ChatMessage })),
-  { 
-    loading: () => <ComponentLoader />,
-    ssr: false 
-  }
-)
-
-const DynamicTypingIndicator = dynamic(
-  () => import("@/components/typing-indicator").then(mod => ({ default: mod.TypingIndicator })),
-  { 
-    loading: () => <div className="h-4 w-16 bg-muted animate-pulse rounded" />,
-    ssr: false 
-  }
-)
-
-// Import Drawer components normally since they are used conditionally
+import { ThemeToggle } from "@/components/theme-toggle"
+import { ChatMessage } from "@/components/chat-message"
+import { TypingIndicator } from "@/components/typing-indicator"
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
 
 export default function ChatPage() {
@@ -86,15 +59,8 @@ export default function ChatPage() {
   const [selectedImage, setSelectedImage] = useState(null)
   const [imagePreview, setImagePreview] = useState(null)
   const fileInputRef = useRef(null)
-  const [showImageGenerator, setShowImageGenerator] = useState(false)
-  const [imagePrompt, setImagePrompt] = useState("")
-  const [generatingImage, setGeneratingImage] = useState(false)
-  const [generatedImage, setGeneratedImage] = useState(null)
-  const [showAudioPlayer, setShowAudioPlayer] = useState(false)
-  const [selectedVoice, setSelectedVoice] = useState("alloy")
-  const [generatingAudio, setGeneratingAudio] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [selectedProvider, setSelectedProvider] = useState("auto") // auto, gemini, sambanova, openrouter, pollinations
+  const [selectedProvider, setSelectedProvider] = useState("auto") // auto, gemini, sambanova, openrouter
 
   // Check for email on mount and redirect if missing
   useEffect(() => {
@@ -754,105 +720,6 @@ export default function ChatPage() {
     }
   }
 
-  // Generate image using Pollinations.AI
-  const handleGenerateImage = async () => {
-    if (!imagePrompt.trim() || generatingImage) return
-
-    setGeneratingImage(true)
-    setError("")
-
-    try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: imagePrompt.trim(),
-          width: 1024,
-          height: 1024,
-          model: 'flux',
-          nologo: true,
-          enhance: true,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate image')
-      }
-
-      setGeneratedImage(data.imageUrl)
-      
-      // Add generated image to chat
-      const imageMessage = {
-        id: Date.now().toString(),
-        content: `🎨 Generated image: "${imagePrompt}"`,
-        sender: "user",
-        timestamp: new Date(),
-        generatedImage: data.imageUrl,
-      }
-      
-      setMessages((prev) => [...prev, imageMessage])
-      
-      // Clear the prompt
-      setImagePrompt("")
-      setShowImageGenerator(false)
-      
-      trackEvent('image_generated', { 
-        prompt: imagePrompt,
-        model: 'flux'
-      })
-    } catch (error) {
-      console.error('Image generation error:', error)
-      setError(error.message || 'Failed to generate image')
-    } finally {
-      setGeneratingImage(false)
-    }
-  }
-
-  // Generate audio using Pollinations.AI
-  const handleGenerateAudio = async (text) => {
-    if (!text.trim() || generatingAudio) return
-
-    setGeneratingAudio(true)
-    setError("")
-
-    try {
-      const response = await fetch('/api/generate-audio', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          text: text.trim(),
-          voice: selectedVoice,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate audio')
-      }
-
-      // Play the audio
-      const audio = new Audio(data.audioUrl)
-      audio.play()
-      
-      trackEvent('audio_generated', { 
-        voice: selectedVoice,
-        textLength: text.length
-      })
-    } catch (error) {
-      console.error('Audio generation error:', error)
-      setError(error.message || 'Failed to generate audio')
-    } finally {
-      setGeneratingAudio(false)
-    }
-  }
-
   const handleSendMessage = useCallback(async () => {
     // Guard against rapid re-entry and require either text or image
     if (sendingRef.current || (!inputValue.trim() && !selectedImage) || isTyping) return
@@ -1458,7 +1325,7 @@ export default function ChatPage() {
             >
               <Settings className="w-4 h-4" />
             </Button>
-            <DynamicThemeToggle />
+            <ThemeToggle />
           </div>
         </div>
       </header>
@@ -1566,7 +1433,7 @@ export default function ChatPage() {
               return (
                 <StaggerItem key={message.id}>
                   <FadeTransition>
-                    <DynamicChatMessage
+                    <ChatMessage
                       message={message}
                       onRegenerate={handleRegenerate}
                       onEdit={handleEdit}
@@ -1587,7 +1454,7 @@ export default function ChatPage() {
             })
                 )}
               </StaggerContainer>
-          {isTyping && <DynamicTypingIndicator />}
+          {isTyping && <TypingIndicator />}
           <div ref={messagesEndRef} />
             </div>
           </div>
@@ -1633,39 +1500,6 @@ export default function ChatPage() {
                     className="hidden"
                     aria-label="Upload image"
                   />
-                  {/* Image attachment button */}
-                  <Button
-                    onClick={() => fileInputRef.current?.click()}
-                    variant="outline"
-                    size="icon"
-                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 bg-background hover:bg-muted border-border"
-                    title="Upload image (PNG, JPG - Max 5MB)"
-                    aria-label="Upload image"
-                  >
-                    <ImageIcon className="w-4 h-4" />
-                  </Button>
-                  {/* AI Image Generator button */}
-                  <Button
-                    onClick={() => setShowImageGenerator(true)}
-                    variant="outline"
-                    size="icon"
-                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 bg-background hover:bg-muted border-border"
-                    title="Generate AI Image"
-                    aria-label="Generate AI Image"
-                  >
-                    <Wand2 className="w-4 h-4" />
-                  </Button>
-                  {/* Text-to-Speech Settings button */}
-                  <Button
-                    onClick={() => setShowAudioPlayer(true)}
-                    variant="outline"
-                    size="icon"
-                    className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 bg-background hover:bg-muted border-border"
-                    title="Text-to-Speech Settings"
-                    aria-label="Text-to-Speech Settings"
-                  >
-                    <Volume2 className="w-4 h-4" />
-                  </Button>
                   <div className="flex-1 min-w-0">
                     <Textarea
                       ref={inputRef}
@@ -2146,119 +1980,6 @@ export default function ChatPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Image Generator Dialog */}
-      <Dialog open={showImageGenerator} onOpenChange={setShowImageGenerator}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Wand2 className="w-5 h-5 text-primary" />
-              AI Image Generator
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="image-prompt" className="text-sm font-medium">
-                Describe the image you want to create
-              </label>
-              <Textarea
-                id="image-prompt"
-                value={imagePrompt}
-                onChange={(e) => setImagePrompt(e.target.value)}
-                placeholder="E.g., A serene mountain landscape at sunset with vibrant colors..."
-                className="min-h-[100px]"
-                disabled={generatingImage}
-              />
-            </div>
-            
-            {generatedImage && (
-              <div className="relative rounded-lg overflow-hidden border border-border">
-                <img 
-                  src={generatedImage} 
-                  alt="Generated" 
-                  className="w-full h-auto"
-                />
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                onClick={handleGenerateImage}
-                disabled={!imagePrompt.trim() || generatingImage}
-                className="flex-1"
-              >
-                {generatingImage ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Generate Image
-                  </>
-                )}
-              </Button>
-              {generatedImage && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setGeneratedImage(null)
-                    setImagePrompt("")
-                  }}
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Clear
-                </Button>
-              )}
-            </div>
-
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p>💡 <strong>Tips:</strong></p>
-              <ul className="list-disc list-inside ml-2 space-y-1">
-                <li>Be specific about style, colors, and mood</li>
-                <li>Mention composition (close-up, wide shot, etc.)</li>
-                <li>Add artistic styles (realistic, anime, oil painting, etc.)</li>
-              </ul>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Audio Player Settings */}
-      <Dialog open={showAudioPlayer} onOpenChange={setShowAudioPlayer}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Volume2 className="w-5 h-5 text-primary" />
-              Text-to-Speech Settings
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Voice Selection</label>
-              <select
-                value={selectedVoice}
-                onChange={(e) => setSelectedVoice(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-border bg-background"
-              >
-                <option value="alloy">Alloy - Neutral and balanced</option>
-                <option value="echo">Echo - Clear and articulate</option>
-                <option value="fable">Fable - Warm and expressive</option>
-                <option value="onyx">Onyx - Deep and authoritative</option>
-                <option value="nova">Nova - Friendly and energetic</option>
-                <option value="shimmer">Shimmer - Soft and gentle</option>
-              </select>
-            </div>
-
-            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                <strong>How to use:</strong> Click the speaker icon next to any message to hear it read aloud with your selected voice.
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {/* Settings Dialog */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="max-w-lg">
@@ -2284,38 +2005,22 @@ export default function ChatPage() {
                 <option value="gemini">Google Gemini (Vision Capable)</option>
                 <option value="sambanova">SambaNova (Fast & Free)</option>
                 <option value="openrouter">OpenRouter (Various Models)</option>
-                <option value="pollinations">Pollinations.AI (Free, No API Key)</option>
               </select>
               <p className="text-xs text-muted-foreground">
                 {selectedProvider === "auto" && "⚡ Automatically selects the fastest available provider"}
                 {selectedProvider === "gemini" && "🧠 Advanced AI with image understanding capabilities"}
                 {selectedProvider === "sambanova" && "🚀 High-speed responses with excellent quality"}
                 {selectedProvider === "openrouter" && "🔄 Access to multiple AI models"}
-                {selectedProvider === "pollinations" && "🌸 Free AI service, no API key required"}
               </p>
             </div>
 
             {/* Feature Highlights */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Palette className="w-4 h-4 text-primary" />
+                <Sparkles className="w-4 h-4 text-primary" />
                 <label className="text-sm font-medium">Available Features</label>
               </div>
               <div className="grid grid-cols-2 gap-2">
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Wand2 className="w-3 h-3 text-blue-600" />
-                    <span className="text-xs font-medium text-blue-800 dark:text-blue-200">AI Image Gen</span>
-                  </div>
-                  <p className="text-xs text-blue-700 dark:text-blue-300">Create images from text</p>
-                </div>
-                <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Volume2 className="w-3 h-3 text-green-600" />
-                    <span className="text-xs font-medium text-green-800 dark:text-green-200">Text-to-Speech</span>
-                  </div>
-                  <p className="text-xs text-green-700 dark:text-green-300">Listen to messages</p>
-                </div>
                 <div className="p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
                   <div className="flex items-center gap-2 mb-1">
                     <ImageIcon className="w-3 h-3 text-purple-600" />

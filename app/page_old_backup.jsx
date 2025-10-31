@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,15 +13,7 @@ import { Bot, Zap, Shield, ArrowRight, Image, Rocket, CheckCircle2, Settings, Al
 import { useRenderTime } from "@/components/performance-monitor"
 import { LoadingSpinner } from "@/components/loading-spinner"
 import { Logo } from "@/components/optimized-image"
-
-// Dynamic import for ThemeToggle since it's not critical for initial render
-const DynamicThemeToggle = dynamic(
-  () => import("@/components/theme-toggle").then(mod => ({ default: mod.ThemeToggle })),
-  { 
-    loading: () => <div className="w-8 h-8 bg-muted animate-pulse rounded-md" />,
-    ssr: false 
-  }
-)
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function LandingPage() {
   // Performance monitoring
@@ -138,7 +129,7 @@ export default function LandingPage() {
                   <span className="hidden sm:inline">Admin</span>
                 </Button>
               </Link>
-              <DynamicThemeToggle />
+              <ThemeToggle />
             </div>
           </div>
         </div>
