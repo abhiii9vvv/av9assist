@@ -1,27 +1,31 @@
 import { NextResponse } from "next/server";
 
-const PollinationsProvider = require('@/lib/pollinations-provider');
+const PollinationsProvider = require("@/lib/pollinations-provider");
 
 export async function POST(request) {
   try {
     const body = await request.json();
     const { prompt, width, height, seed, model, nologo, enhance } = body;
-    if (!prompt || typeof prompt !== 'string' || !prompt.trim()) {
+
+    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return NextResponse.json(
-        { error: 'Prompt is required' },
+        { error: "Prompt is required and must be a non-empty string" },
         { status: 400 }
       );
     }
+
     const pollinations = new PollinationsProvider();
     const options = {
       width: width || 1024,
       height: height || 1024,
       seed: seed || Date.now(),
-      model: model || 'flux',
+      model: model || "flux",
       nologo: nologo !== undefined ? nologo : true,
-      enhance: enhance || false
+      enhance: enhance || false,
     };
+
     const imageUrl = await pollinations.generateImage(prompt.trim(), options);
+
     return NextResponse.json({
       success: true,
       imageUrl,
@@ -42,6 +46,7 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get("action");
     const pollinations = new PollinationsProvider();
+
     if (action === "models") {
       // Get available image models
       const models = await pollinations.getImageModels();

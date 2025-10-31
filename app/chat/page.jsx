@@ -62,8 +62,10 @@ export default function ChatPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [selectedProvider, setSelectedProvider] = useState("auto") // auto, gemini, sambanova, openrouter
   const [showAttachMenu, setShowAttachMenu] = useState(false)
-  const [imageMode, setImageMode] = useState(false) // Toggle between text and image generation mode
+  const [showImageGenerator, setShowImageGenerator] = useState(false)
+  const [imagePrompt, setImagePrompt] = useState("")
   const [generatingImage, setGeneratingImage] = useState(false)
+  const [generatedImage, setGeneratedImage] = useState(null)
 
   // Check for email on mount and redirect if missing
   useEffect(() => {
@@ -752,23 +754,9 @@ export default function ChatPage() {
 
   const handleGenerateImage = async () => {
     if (!imagePrompt.trim() || generatingImage) return
-  // Generate image using Pollinations.AI in normal chat flow
-  const handleGenerateImage = async () => {
-    if (!inputValue.trim() || generatingImage) return
 
-    const prompt = inputValue.trim()
     setGeneratingImage(true)
-    setInputValue("") // Clear input immediately
     setError("")
-
-    // Add user message with prompt
-    const userMessage = {
-      id: Date.now().toString(),
-      content: `🎨 Generate image: "${prompt}"`,
-      sender: "user",
-      timestamp: new Date(),
-    }
-    setMessages((prev) => [...prev, userMessage])
 
     try {
       const response = await fetch('/api/generate-image', {
@@ -777,7 +765,7 @@ export default function ChatPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: prompt,
+          prompt: imagePrompt.trim(),
           width: 1024,
           height: 1024,
           seed: Date.now(),
@@ -793,29 +781,24 @@ export default function ChatPage() {
         throw new Error(data.error || 'Failed to generate image')
       }
 
-      // Add AI response with generated image
+      setGeneratedImage(data.imageUrl)
+      setImagePrompt("")
+      setShowImageGenerator(false)
+      
+      // Add generated image to chat
       const imageMessage = {
-        id: (Date.now() + 1).toString(),
-        content: `Here's your generated image:`,
-        sender: "ai",
+        id: Date.now().toString(),
+        content: `🎨 Generated image: "${imagePrompt}"`,
+        sender: "user",
         timestamp: new Date(),
         image: data.imageUrl,
       }
       
       setMessages((prev) => [...prev, imageMessage])
-      setImageMode(false) // Switch back to text mode
       
     } catch (error) {
       console.error('Image generation error:', error)
-      
-      // Add error message to chat
-      const errorMessage = {
-        id: (Date.now() + 1).toString(),
-        content: `Sorry, I couldn't generate the image. Error: ${error.message}`,
-        sender: "ai",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
+      setError(error.message || 'Failed to generate image')
     } finally {
       setGeneratingImage(false)
     }
@@ -1639,22 +1622,15 @@ export default function ChatPage() {
                         </button>
                         <button
                           onClick={() => {
-                            setImageMode(!imageMode)
+                            setShowImageGenerator(true)
                             setShowAttachMenu(false)
                           }}
-                          className={cn(
-                            "w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors text-left",
-                            imageMode && "bg-accent"
-                          )}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors text-left"
                         >
-                          <Wand2 className={cn("w-4 h-4", imageMode ? "text-purple-600" : "text-purple-500")} />
+                          <Wand2 className="w-4 h-4 text-purple-600" />
                           <div>
-                            <p className="text-sm font-medium">
-                              {imageMode ? "✓ Image mode" : "Generate image"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {imageMode ? "Active" : "Create with AI"}
-                            </p>
+                            <p className="text-sm font-medium">Generate image</p>
+                            <p className="text-xs text-muted-foreground">Create with AI</p>
                           </div>
                         </button>
                       </div>
@@ -1669,12 +1645,10 @@ export default function ChatPage() {
                       onKeyDown={handleKeyPress}
                       onFocus={() => setIsInputFocused(true)}
                       onBlur={() => setIsInputFocused(false)}
-                      placeholder={imageMode ? "Describe the image you want to create..." : "Type your message..."}
-                      className={cn(
-                        "min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border bg-background border-border focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none transition-colors duration-200",
-                        inputError && "border-red-500 focus-visible:ring-red-500",
-                        imageMode && "border-purple-500 focus-visible:ring-purple-500"
-                      )}
+                      placeholder="Type your message..."
+                      className={`min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border bg-background border-border focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none transition-colors duration-200 ${
+                        inputError ? "border-red-500 focus-visible:ring-red-500" : ""
+                      }`}
                       disabled={false}
                       aria-label="Type your message"
                       aria-describedby={inputError ? "input-error" : undefined}
@@ -1683,36 +1657,21 @@ export default function ChatPage() {
                     {inputError && (
                       <p id="input-error" className="text-xs text-red-500 mt-1" role="alert" aria-live="polite">{inputError}</p>
                     )}
-                    {imageMode && !inputError && (
-                      <p className="text-xs text-purple-600 mt-1 flex items-center gap-1">
-                        <Wand2 className="w-3 h-3" />
-                        Image generation mode active
-                      </p>
-                    )}
                   </div>
                   
                   <ScaleTransition>
                     <Button
-                      onClick={imageMode ? handleGenerateImage : handleSendMessage}
-                      disabled={!inputValue.trim() || (imageMode ? generatingImage : isTyping) || inputError}
+                      onClick={handleSendMessage}
+                      disabled={(!inputValue.trim() && !selectedImage) || isTyping || inputError}
                       size="icon"
                       className={cn(
                         "min-w-[44px] min-h-[44px] transition-all duration-300 shrink-0",
-                        imageMode && "bg-purple-600 hover:bg-purple-700",
-                        inputValue.trim() && !(imageMode ? generatingImage : isTyping) && !inputError && "animate-pulse hover:animate-none hover:scale-105 shadow-lg"
+                        (inputValue.trim() || selectedImage) && !isTyping && !inputError && "animate-pulse hover:animate-none hover:scale-105 shadow-lg"
                       )}
-                      aria-label={imageMode ? "Generate image" : "Send message"}
-                      aria-disabled={!inputValue.trim() || (imageMode ? generatingImage : isTyping) || inputError}
+                      aria-label="Send message"
+                      aria-disabled={(!inputValue.trim() && !selectedImage) || isTyping || inputError}
                     >
-                      {imageMode ? (
-                        generatingImage ? (
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : (
-                          <Wand2 className="w-4 h-4" />
-                        )
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
+                      <Send className="w-4 h-4" />
                     </Button>
                   </ScaleTransition>
                 </div>
@@ -2136,6 +2095,84 @@ export default function ChatPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Image Generator Dialog */}
+      <Dialog open={showImageGenerator} onOpenChange={setShowImageGenerator}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wand2 className="w-5 h-5 text-purple-600" />
+              AI Image Generator
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label htmlFor="image-prompt" className="text-sm font-medium">
+                Describe the image you want to create
+              </label>
+              <Textarea
+                id="image-prompt"
+                value={imagePrompt}
+                onChange={(e) => setImagePrompt(e.target.value)}
+                placeholder="A serene mountain landscape at sunset with vibrant colors, photorealistic style..."
+                className="min-h-[100px]"
+                disabled={generatingImage}
+              />
+            </div>
+            
+            {generatedImage && (
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <img 
+                  src={generatedImage} 
+                  alt="Generated" 
+                  className="w-full h-auto"
+                />
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <Button
+                onClick={handleGenerateImage}
+                disabled={!imagePrompt.trim() || generatingImage}
+                className="flex-1"
+              >
+                {generatingImage ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Generate Image
+                  </>
+                )}
+              </Button>
+              {generatedImage && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setGeneratedImage(null)
+                    setImagePrompt("")
+                  }}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>💡 <strong>Tips:</strong></p>
+              <ul className="list-disc list-inside ml-2 space-y-1">
+                <li>Be specific about style, colors, and mood</li>
+                <li>Mention composition (close-up, wide shot, etc.)</li>
+                <li>Add artistic styles (realistic, anime, oil painting, etc.)</li>
+              </ul>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Settings Dialog */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
         <DialogContent className="max-w-lg">
@@ -2206,4 +2243,5 @@ export default function ChatPage() {
     </div>
   )
 }
-}
+
+
