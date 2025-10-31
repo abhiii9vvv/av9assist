@@ -89,8 +89,24 @@ export default function ChatPage() {
       return
     }
     
-    // Try to restore last active conversation
-    const lastConversationId = localStorage.getItem("av9assist_last_conversation_id")
+    // Check last activity timestamp
+    const lastActivityTime = localStorage.getItem("av9assist_last_activity_time")
+    const currentTime = Date.now()
+    const FIFTEEN_MINUTES = 15 * 60 * 1000 // 15 minutes in milliseconds
+    
+    // Only restore conversation if last activity was within 15 minutes
+    let shouldRestoreConversation = false
+    if (lastActivityTime) {
+      const timeDifference = currentTime - parseInt(lastActivityTime, 10)
+      shouldRestoreConversation = timeDifference < FIFTEEN_MINUTES
+      
+      if (!shouldRestoreConversation) {
+        console.log("Last activity was more than 15 minutes ago - starting fresh session")
+        // Clear old conversation state
+        localStorage.removeItem("av9assist_last_conversation_id")
+        localStorage.removeItem("av9assist_last_activity_time")
+      }
+    }
     
     // Load conversation list
     loadConversationList()
@@ -101,14 +117,17 @@ export default function ChatPage() {
       try { refreshAllConversationTitles() } catch {}
     }, 0)
     
-    // Try to restore the last conversation if it exists
-    if (lastConversationId) {
-      const restored = loadConversationMessages(lastConversationId)
-      if (restored && restored.length > 0) {
-        setConversationId(lastConversationId)
-        setMessages(restored)
-        // Successfully restored - don't show welcome message
-        return
+    // Try to restore the last conversation only if within time window
+    if (shouldRestoreConversation) {
+      const lastConversationId = localStorage.getItem("av9assist_last_conversation_id")
+      if (lastConversationId) {
+        const restored = loadConversationMessages(lastConversationId)
+        if (restored && restored.length > 0) {
+          setConversationId(lastConversationId)
+          setMessages(restored)
+          // Successfully restored - don't show welcome message
+          return
+        }
       }
     }
     
@@ -203,36 +222,30 @@ export default function ChatPage() {
     }
   }
 
-  // Auto-save message drafts
+  // Auto-save message drafts (disabled - drafts will be cleared on refresh)
   useEffect(() => {
-    const saveDraft = () => {
-      if (inputValue.trim() && conversationId) {
-        try {
-          localStorage.setItem(`av9assist_draft_${conversationId}`, inputValue)
-        } catch (e) {
-          console.warn("Failed to save draft", e)
-        }
-      }
-    }
-
-    const timeoutId = setTimeout(saveDraft, 500) // Debounce saves
-    return () => clearTimeout(timeoutId)
+    // Drafts are no longer persisted to prevent stale content
+    // Input is cleared on page refresh/revisit
   }, [inputValue, conversationId])
 
-  // Load draft when conversation changes
+  // Load draft when conversation changes and update activity timestamp
   useEffect(() => {
     if (conversationId) {
       try {
-        // Save current conversation ID as last active
+        // Update last activity timestamp
+        localStorage.setItem("av9assist_last_activity_time", Date.now().toString())
         localStorage.setItem("av9assist_last_conversation_id", conversationId)
         
-        // Load draft for this conversation
-        const draft = localStorage.getItem(`av9assist_draft_${conversationId}`)
-        if (draft && !inputValue) { // Only load if input is empty
-          setInputValue(draft)
+        // Clear any old drafts - we don't restore them anymore
+        const draftKey = `av9assist_draft_${conversationId}`
+        localStorage.removeItem(draftKey)
+        
+        // Ensure input is clear when switching conversations
+        if (inputValue) {
+          setInputValue("")
         }
       } catch (e) {
-        console.warn("Failed to load draft", e)
+        console.warn("Failed to update activity timestamp", e)
       }
     }
   }, [conversationId])
@@ -724,6 +737,13 @@ export default function ChatPage() {
     // Guard against rapid re-entry and require either text or image
     if (sendingRef.current || (!inputValue.trim() && !selectedImage) || isTyping) return
     sendingRef.current = true
+
+    // Update activity timestamp when user sends a message
+    try {
+      localStorage.setItem("av9assist_last_activity_time", Date.now().toString())
+    } catch (e) {
+      console.warn("Failed to update activity timestamp", e)
+    }
 
     // Show appropriate status message
     if (selectedImage) {
@@ -1525,13 +1545,6 @@ export default function ChatPage() {
                       <Button
                         onClick={() => {
                           setInputValue("")
-                          if (conversationId) {
-                            try {
-                              localStorage.removeItem(`av9assist_draft_${conversationId}`)
-                            } catch (e) {
-                              console.warn("Failed to clear draft", e)
-                            }
-                          }
                         }}
                         variant="outline"
                         size="icon"
