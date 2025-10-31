@@ -1659,7 +1659,7 @@ export default function ChatPage() {
 
         {/* Input Area - Fixed at bottom */}
         <div className={cn(
-          "fixed bottom-0 left-0 right-0 border-t bg-card/95 backdrop-blur-sm z-20 pb-safe shadow-inner transition-all duration-200",
+          "fixed bottom-0 left-0 right-0 border-t bg-card/95 backdrop-blur-sm z-30 pb-safe shadow-inner transition-all duration-200",
           isMobileKeyboardVisible && "pb-2"
         )}>
           <div className="container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-6xl">
@@ -1741,7 +1741,7 @@ export default function ChatPage() {
                     
                     {/* Attachment Menu Popup */}
                     {showAttachMenu && (
-                      <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-1 w-48 z-50">
+                      <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-1 w-48 z-[100]">
                         <button
                           onClick={() => {
                             fileInputRef.current?.click()
