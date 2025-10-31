@@ -1437,7 +1437,6 @@ export default function ChatPage() {
                       message={message}
                       onRegenerate={handleRegenerate}
                       onEdit={handleEdit}
-                      onAudio={handleGenerateAudio}
                       isLast={message.sender === "ai" && index === messages.length - 1}
                       isTyping={isTyping && message.sender === "ai" && index === messages.length - 1}
                       showTimestamp={true}
