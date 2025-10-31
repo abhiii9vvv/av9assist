@@ -2,6 +2,7 @@
 
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 import { MessageCircle, User, Bot, Check, Clock, Copy, ThumbsUp, ThumbsDown, RotateCcw, Edit3, Volume2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { createPortal } from "react-dom"
@@ -369,17 +370,38 @@ export const ChatMessage = memo(function ChatMessage({
                   />
                 </div>
               )}
+              
+              {/* Show loading animation while generating */}
+              {message.generatingImage && !message.generatedImage && (
+                <div className="mb-4 space-y-3">
+                  <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5 p-3">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 animate-pulse" aria-hidden="true" />
+                    <Skeleton className="relative h-56 w-full rounded-lg bg-primary/15" />
+                    <div className="relative mt-3 flex items-center gap-2 text-xs font-medium text-primary">
+                      <span className="relative inline-flex h-4 w-4">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-primary/30 opacity-60 animate-ping" />
+                        <span className="relative inline-flex h-4 w-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" aria-hidden="true" />
+                      </span>
+                      <span className="animate-pulse">Wait, we're generating your masterpiece...</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">This usually takes a few seconds. The image will appear below when ready.</p>
+                </div>
+              )}
+              
               {/* Display AI generated image if present */}
               {message.generatedImage && (
-                <div className="mb-3">
+                <div className="mb-3 animate-in fade-in-0 slide-in-from-bottom-2 duration-500">
                   <img 
                     src={message.generatedImage} 
                     alt="AI Generated" 
                     className="max-w-full max-h-96 rounded-lg border border-primary/30 shadow-lg hover:shadow-xl transition-shadow duration-200"
                   />
-                  <p className="text-xs text-muted-foreground mt-2 italic">🎨 AI Generated Image</p>
+                  <p className="text-xs text-muted-foreground mt-2 italic animate-in fade-in-0 duration-700 delay-200">🎨 AI Generated Image</p>
                 </div>
               )}
+              
+              {/* Text content */}
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 rehypePlugins={[rehypeHighlight]}

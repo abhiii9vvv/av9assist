@@ -62,10 +62,7 @@ export default function ChatPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [selectedProvider, setSelectedProvider] = useState("auto") // auto, gemini, sambanova, openrouter
   const [showAttachMenu, setShowAttachMenu] = useState(false)
-  const [showImageGenerator, setShowImageGenerator] = useState(false)
-  const [imagePrompt, setImagePrompt] = useState("")
-  const [generatingImage, setGeneratingImage] = useState(false)
-  const [generatedImage, setGeneratedImage] = useState(null)
+  const [isImageMode, setIsImageMode] = useState(false)
 
   // Check for email on mount and redirect if missing
   useEffect(() => {
@@ -130,6 +127,7 @@ export default function ChatPage() {
         if (restored && restored.length > 0) {
           setConversationId(lastConversationId)
           setMessages(restored)
+          setTimeout(() => scrollToBottom("auto"), 80)
           // Successfully restored - don't show welcome message
           return
         }
@@ -145,6 +143,7 @@ export default function ChatPage() {
         timestamp: new Date(),
       }
       setMessages([welcomeMessage])
+      setTimeout(() => scrollToBottom("auto"), 80)
     } else {
       // Generic welcome message
       const welcomeMessage = {
@@ -154,6 +153,7 @@ export default function ChatPage() {
         timestamp: new Date(),
       }
       setMessages([welcomeMessage])
+      setTimeout(() => scrollToBottom("auto"), 80)
     }
   }, [])
 
@@ -474,8 +474,14 @@ export default function ChatPage() {
     return "New Conversation"
   }
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  const scrollToBottom = (behavior = "smooth") => {
+    const node = messagesEndRef.current
+    if (!node) return
+    try {
+      node.scrollIntoView({ behavior, block: "end" })
+    } catch (e) {
+      node.scrollIntoView()
+    }
   }
 
   // Ensure conversation titles are unique within the history list.
@@ -645,11 +651,32 @@ export default function ChatPage() {
       setMessages(msgs.length ? msgs : [])
       setHistoryOpen(false)
       // ensure scrolled
-      setTimeout(scrollToBottom, 50)
+  setTimeout(() => scrollToBottom(), 50)
     } finally {
       setIsConversationLoading(false)
     }
   }
+
+  const trackEvent = useCallback((eventName, data = {}) => {
+    const analyticsData = {
+      event: eventName,
+      timestamp: new Date().toISOString(),
+      conversationId,
+      userAgent: navigator.userAgent,
+      ...data
+    }
+
+    try {
+      const existing = JSON.parse(localStorage.getItem('av9assist_analytics') || '[]')
+      existing.push(analyticsData)
+      if (existing.length > 100) {
+        existing.splice(0, existing.length - 100)
+      }
+      localStorage.setItem('av9assist_analytics', JSON.stringify(existing))
+    } catch (e) {
+      console.warn('Failed to track analytics', e)
+    }
+  }, [conversationId])
 
   const startNewChat = () => {
     trackEvent('conversation_started', { previousConversationId: conversationId })
@@ -667,6 +694,7 @@ export default function ChatPage() {
     setConversationId("")
     setSelectedImage(null)
     setImagePreview(null)
+    setIsImageMode(false)
     const welcomeMessage = {
       id: "welcome",
       content: "Hello! I'm av9Assist, your AI-powered assistant. How can I help you today?",
@@ -675,13 +703,17 @@ export default function ChatPage() {
     }
     setMessages([welcomeMessage])
     setHistoryOpen(false)
-    setTimeout(scrollToBottom, 50)
+  setTimeout(() => scrollToBottom(), 50)
   }
 
   // Image handling functions
   const handleImageSelect = (e) => {
     const file = e.target.files?.[0]
     if (!file) return
+
+    if (isImageMode) {
+      setIsImageMode(false)
+    }
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -752,89 +784,185 @@ export default function ChatPage() {
     }
   }
 
-  const handleGenerateImage = async () => {
-    if (!imagePrompt.trim() || generatingImage) return
-
-    setGeneratingImage(true)
-    setError("")
-
-    try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: imagePrompt.trim(),
-          width: 1024,
-          height: 1024,
-          seed: Date.now(),
-          model: 'flux',
-          nologo: true,
-          enhance: false
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate image')
-      }
-
-      setGeneratedImage(data.imageUrl)
-      setImagePrompt("")
-      setShowImageGenerator(false)
-      
-      // Add generated image to chat
-      const imageMessage = {
-        id: Date.now().toString(),
-        content: `🎨 Generated image: "${imagePrompt}"`,
-        sender: "user",
-        timestamp: new Date(),
-        image: data.imageUrl,
-      }
-      
-      setMessages((prev) => [...prev, imageMessage])
-      
-    } catch (error) {
-      console.error('Image generation error:', error)
-      setError(error.message || 'Failed to generate image')
-    } finally {
-      setGeneratingImage(false)
-    }
-  }
-
   const handleSendMessage = useCallback(async () => {
-    // Guard against rapid re-entry and require either text or image
-    if (sendingRef.current || (!inputValue.trim() && !selectedImage) || isTyping) return
-    sendingRef.current = true
+    const trimmedInput = inputValue.trim()
+    const hasAttachment = !!selectedImage
 
-    // Update activity timestamp when user sends a message
+    // Guard against rapid re-entry
+    if (sendingRef.current || (trimmedInput.length === 0 && !hasAttachment && !isImageMode) || isTyping) {
+      return
+    }
+
+    // Update activity timestamp when user interacts
     try {
       localStorage.setItem("av9assist_last_activity_time", Date.now().toString())
     } catch (e) {
       console.warn("Failed to update activity timestamp", e)
     }
 
-    // Show appropriate status message
-    if (selectedImage) {
-      setStatusMessage("Processing image with AI (this may take 10-15 seconds)...")
-    } else {
-      setStatusMessage("Sending message...")
+    // Handle inline Pollinations image generation mode
+    if (isImageMode) {
+      if (!trimmedInput) return
+
+      sendingRef.current = true
+      setStatusMessage("Generating image with Pollinations...")
+      setError("")
+
+      const prompt = trimmedInput
+      const userMessage = {
+        id: Date.now().toString(),
+        content: prompt,
+        sender: "user",
+        timestamp: new Date(),
+      }
+
+      const placeholderId = `pollinations-${Date.now()}`
+      const aiPlaceholder = {
+        id: placeholderId,
+        content: "",
+        sender: "ai",
+        timestamp: new Date(),
+        generatingImage: true,
+      }
+
+      let convId = conversationId
+      if (!convId) {
+        convId = `conv-${Date.now()}`
+        setConversationId(convId)
+      }
+
+      setMessages((prev) => {
+        const next = [...prev, userMessage, aiPlaceholder]
+        upsertConversationMeta(convId, prompt, next)
+        saveConversationMessages(convId, next)
+        return next
+      })
+
+      trackEvent('image_generation_started', {
+        provider: 'pollinations',
+        promptLength: prompt.length,
+      })
+
+      setInputValue("")
+      setIsImageMode(false)
+      setReplyingTo(null)
+      setSelectedImage(null)
+      setImagePreview(null)
+      setTimeout(() => scrollToBottom(), 100)
+
+      try {
+        const startTime = Date.now()
+        
+        const response = await fetch('/api/generate-image', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt,
+            width: 1024,
+            height: 1024,
+            seed: Date.now(),
+            model: 'flux',
+            nologo: true,
+            enhance: false,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to generate image')
+        }
+
+        // Since API typically takes 5-6 seconds, no need for artificial delay
+        const elapsed = Date.now() - startTime
+        const remainingTime = 0
+
+        setTimeout(() => {
+          setMessages((prev) => {
+            const next = prev.map((msg) =>
+              msg.id === placeholderId
+                ? {
+                    ...msg,
+                    content: "",
+                    generatedImage: data.imageUrl,
+                    generatingImage: false,
+                  }
+                : msg
+            )
+            saveConversationMessages(convId, next)
+            return next
+          })
+
+          // Delay text streaming to let image fade in smoothly
+          setTimeout(() => {
+            const successText = `Here is what I created for "${prompt}"`
+            streamInContent(successText, placeholderId, () => {
+              setMessages((prev) => {
+                const finalMsgs = prev
+                saveConversationMessages(convId, finalMsgs)
+                return finalMsgs
+              })
+            })
+            scrollToBottom()
+          }, 300)
+        }, remainingTime)
+
+        setTimeout(() => {
+          try { refreshAllConversationTitles() } catch {}
+        }, 0)
+
+        trackEvent('image_generated', {
+          provider: 'pollinations',
+          promptLength: prompt.length,
+        })
+
+        setStatusMessage("Image ready!")
+        setTimeout(() => setStatusMessage(""), 1200)
+      } catch (error) {
+        console.error('Image generation error:', error)
+        const message = error.message || 'Failed to generate image'
+        setError(message)
+        setStatusMessage(`Error: ${message}`)
+        setMessages((prev) => {
+          const next = prev.map((msg) =>
+            msg.id === placeholderId
+              ? {
+                  ...msg,
+                  content: `⚠️ ${message}`,
+                  generatingImage: false,
+                }
+              : msg
+          )
+          saveConversationMessages(convId, next)
+          return next
+        })
+      } finally {
+        sendingRef.current = false
+        setIsTyping(false)
+      }
+
+      return
     }
 
-    // Cancel any existing request
+    // Default message flow (text and attachments)
+    if (!trimmedInput && !hasAttachment) return
+
+    sendingRef.current = true
+
+    setStatusMessage(hasAttachment ? "Processing image attachment..." : "Sending message...")
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
 
-    // Create new abort controller for this request
     const controller = new AbortController()
     abortControllerRef.current = controller
 
     const userMessage = {
       id: Date.now().toString(),
-      content: inputValue.trim() || (selectedImage ? "[Image]" : ""),
+      content: trimmedInput || (hasAttachment ? "[Image]" : ""),
       sender: "user",
       timestamp: new Date(),
       image: selectedImage,
@@ -849,16 +977,15 @@ export default function ChatPage() {
     setInputValue("")
     setSelectedImage(null)
     setImagePreview(null)
-    setReplyingTo(null) // Clear reply state
-    
-    // Auto-scroll to bottom after sending message
+    setReplyingTo(null)
+
     setTimeout(() => scrollToBottom(), 100)
-    
-    trackEvent('message_sent', { 
+
+    trackEvent('message_sent', {
       messageLength: userMessage.content.length,
       hasReply: !!userMessage.replyTo,
-      hasImage: !!selectedImage,
-      conversationLength: messages.length + 1
+      hasImage: hasAttachment,
+      conversationLength: messages.length + 1,
     })
     setIsTyping(true)
     setError("")
@@ -867,11 +994,10 @@ export default function ChatPage() {
       const response = await sendMessage(userMessage.content || "What's in this image?", {
         userId: userEmail || undefined,
         conversationId: conversationId || undefined,
-        signal: controller.signal, // Pass abort signal
+        signal: controller.signal,
         image: selectedImage,
       })
 
-      // Update conversation ID if it's new
       const convId = conversationId || response.conversationId
       if (!conversationId) {
         setConversationId(convId)
@@ -884,28 +1010,23 @@ export default function ChatPage() {
         timestamp: new Date(response.message.timestamp),
       }
 
-      // Insert empty AI message first, then stream in the content for a ChatGPT-like feel
       setMessages((prev) => {
         const next = [...prev, aiMessage]
-        // Persist immediately: include the just-sent user message and empty ai placeholder
-        // Title based on FIRST user prompt only
         if (!conversationId) {
           upsertConversationMeta(convId, userMessage.content, next)
         } else {
           upsertConversationMeta(convId, undefined, next)
         }
         saveConversationMessages(convId, next)
-        // Auto-scroll to show AI response
         setTimeout(() => scrollToBottom(), 100)
         return next
       })
+
       streamInContent(response.message.content || "", aiMessage.id, () => {
-        // On complete: persist final message content and improve title
         setStatusMessage("AI response complete")
-        setTimeout(() => setStatusMessage(""), 1000) // Clear after 1 second
+        setTimeout(() => setStatusMessage(""), 1000)
         setMessages((prev) => {
           const finalMsgs = prev
-          // Do not overwrite the title here; it's already set from the first prompt
           saveConversationMessages(convId, finalMsgs)
           setTimeout(() => {
             try { refreshAllConversationTitles() } catch {}
@@ -915,7 +1036,6 @@ export default function ChatPage() {
       })
     } catch (err) {
       if (err.name === 'AbortError') {
-        // Request was cancelled, don't show error
         console.log('Request was cancelled')
         return
       }
@@ -930,7 +1050,6 @@ export default function ChatPage() {
       setError(errorMessage)
       setStatusMessage(`Error: ${errorMessage}`)
 
-      // Add error message to chat
       const errorMsg = {
         id: (Date.now() + 1).toString(),
         content: "Sorry, I'm having trouble responding right now. Please try again in a moment.",
@@ -939,12 +1058,11 @@ export default function ChatPage() {
       }
       setMessages((prev) => [...prev, errorMsg])
     } finally {
-      // Stop the typing indicator once the server has responded; streaming continues independently
       setIsTyping(false)
       sendingRef.current = false
       abortControllerRef.current = null
     }
-  }, [inputValue, conversationId, userEmail, messages, selectedImage])
+  }, [inputValue, conversationId, userEmail, messages, selectedImage, isImageMode, trackEvent])
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
@@ -1091,10 +1209,13 @@ export default function ChatPage() {
     setError("")
   }
 
-  // Stream helper: incrementally updates message content by id
+  // Stream helper: incrementally updates message content by id while preserving other properties
   const streamInContent = (fullText, messageId, onComplete) => {
     const text = String(fullText)
-    if (!text) return
+    if (!text) {
+      if (typeof onComplete === "function") onComplete()
+      return
+    }
     // Choose a base step depending on length
     const len = text.length
     const baseStep = len > 1200 ? 28 : len > 600 ? 18 : len > 300 ? 10 : 6
@@ -1118,7 +1239,13 @@ export default function ChatPage() {
       }
 
       const next = text.slice(0, end)
-      setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, content: next } : m)))
+      setMessages((prev) => prev.map((m) => {
+        if (m.id === messageId) {
+          // Preserve all existing properties, only update content
+          return { ...m, content: next }
+        }
+        return m
+      }))
       i = end
     }
 
@@ -1142,30 +1269,6 @@ export default function ChatPage() {
       streamTimersRef.current = {}
     }
   }, [])
-
-  // Analytics tracking
-  const trackEvent = (eventName, data = {}) => {
-    const analyticsData = {
-      event: eventName,
-      timestamp: new Date().toISOString(),
-      conversationId,
-      userAgent: navigator.userAgent,
-      ...data
-    }
-    
-    // Store in localStorage for now (could be sent to analytics service)
-    try {
-      const existing = JSON.parse(localStorage.getItem('av9assist_analytics') || '[]')
-      existing.push(analyticsData)
-      // Keep only last 100 events
-      if (existing.length > 100) {
-        existing.splice(0, existing.length - 100)
-      }
-      localStorage.setItem('av9assist_analytics', JSON.stringify(existing))
-    } catch (e) {
-      console.warn('Failed to track analytics', e)
-    }
-  }
 
   const validateInput = (value) => {
     const maxLength = 4000 // Reasonable limit for chat messages
@@ -1229,6 +1332,9 @@ export default function ChatPage() {
       </div>
     )
   }
+
+  const trimmedInput = inputValue.trim()
+  const canSend = isImageMode ? trimmedInput.length > 0 : trimmedInput.length > 0 || !!selectedImage
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col overflow-hidden">
@@ -1558,7 +1664,14 @@ export default function ChatPage() {
         )}>
           <div className="container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-6xl">
             <FadeTransition>
-              <Card className="p-1 sm:p-2 bg-card/50 backdrop-blur-sm border border-border shadow-lg transition-all duration-200" role="region" aria-label="Message input area">
+              <Card
+                className={cn(
+                  "p-1 sm:p-2 bg-card/50 backdrop-blur-sm border border-border shadow-lg transition-all duration-200",
+                  isImageMode && "border-purple-500/60 shadow-[0_0_25px_-12px_rgba(168,85,247,0.9)]"
+                )}
+                role="region"
+                aria-label="Message input area"
+              >
                 {/* Image preview */}
                 {imagePreview && (
                   <div className="mb-2 relative inline-block">
@@ -1578,6 +1691,28 @@ export default function ChatPage() {
                         <X className="w-3 h-3" />
                       </Button>
                     </div>
+                  </div>
+                )}
+                {isImageMode && (
+                  <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-purple-300 dark:border-purple-700 bg-purple-50/80 dark:bg-purple-950/20 px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2 text-purple-700 dark:text-purple-200">
+                      <Wand2 className="w-4 h-4" />
+                      <span>Create Image Mode — describe what you want to see.</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsImageMode(false)
+                        setStatusMessage("")
+                        trackEvent('image_mode_cancelled', {
+                          conversationId: conversationId || null,
+                        })
+                      }}
+                    >
+                      <X className="w-3 h-3 mr-1" />
+                      Exit
+                    </Button>
                   </div>
                 )}
                 <div className="flex gap-1 sm:gap-2 items-end" role="group" aria-label="Message composition">
@@ -1622,8 +1757,17 @@ export default function ChatPage() {
                         </button>
                         <button
                           onClick={() => {
-                            setShowImageGenerator(true)
+                            setIsImageMode(true)
                             setShowAttachMenu(false)
+                            setSelectedImage(null)
+                            setImagePreview(null)
+                            setStatusMessage("Describe the image you'd like me to create.")
+                            trackEvent('image_mode_enabled', {
+                              conversationId: conversationId || null,
+                            })
+                            setTimeout(() => {
+                              try { inputRef.current?.focus() } catch {}
+                            }, 0)
                           }}
                           className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors text-left"
                         >
@@ -1645,12 +1789,14 @@ export default function ChatPage() {
                       onKeyDown={handleKeyPress}
                       onFocus={() => setIsInputFocused(true)}
                       onBlur={() => setIsInputFocused(false)}
-                      placeholder="Type your message..."
+                      placeholder={isImageMode ? "Describe the image you'd like me to create..." : "Type your message..."}
                       className={`min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border bg-background border-border focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none transition-colors duration-200 ${
                         inputError ? "border-red-500 focus-visible:ring-red-500" : ""
+                      } ${
+                        isImageMode && !inputError ? "border-purple-400 focus-visible:ring-purple-500" : ""
                       }`}
                       disabled={false}
-                      aria-label="Type your message"
+                      aria-label={isImageMode ? "Describe the image you want me to create" : "Type your message"}
                       aria-describedby={inputError ? "input-error" : undefined}
                       id="message-input"
                     />
@@ -1662,14 +1808,14 @@ export default function ChatPage() {
                   <ScaleTransition>
                     <Button
                       onClick={handleSendMessage}
-                      disabled={(!inputValue.trim() && !selectedImage) || isTyping || inputError}
+                      disabled={!canSend || isTyping || !!inputError}
                       size="icon"
                       className={cn(
                         "min-w-[44px] min-h-[44px] transition-all duration-300 shrink-0",
-                        (inputValue.trim() || selectedImage) && !isTyping && !inputError && "animate-pulse hover:animate-none hover:scale-105 shadow-lg"
+                        canSend && !isTyping && !inputError && "animate-pulse hover:animate-none hover:scale-105 shadow-lg"
                       )}
-                      aria-label="Send message"
-                      aria-disabled={(!inputValue.trim() && !selectedImage) || isTyping || inputError}
+                      aria-label={isImageMode ? "Generate image" : "Send message"}
+                      aria-disabled={!canSend || isTyping || !!inputError}
                     >
                       <Send className="w-4 h-4" />
                     </Button>
@@ -2090,84 +2236,6 @@ export default function ChatPage() {
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Generator Dialog */}
-      <Dialog open={showImageGenerator} onOpenChange={setShowImageGenerator}>
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Wand2 className="w-5 h-5 text-purple-600" />
-              AI Image Generator
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <label htmlFor="image-prompt" className="text-sm font-medium">
-                Describe the image you want to create
-              </label>
-              <Textarea
-                id="image-prompt"
-                value={imagePrompt}
-                onChange={(e) => setImagePrompt(e.target.value)}
-                placeholder="A serene mountain landscape at sunset with vibrant colors, photorealistic style..."
-                className="min-h-[100px]"
-                disabled={generatingImage}
-              />
-            </div>
-            
-            {generatedImage && (
-              <div className="relative rounded-lg overflow-hidden border border-border">
-                <img 
-                  src={generatedImage} 
-                  alt="Generated" 
-                  className="w-full h-auto"
-                />
-              </div>
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                onClick={handleGenerateImage}
-                disabled={!imagePrompt.trim() || generatingImage}
-                className="flex-1"
-              >
-                {generatingImage ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Wand2 className="w-4 h-4 mr-2" />
-                    Generate Image
-                  </>
-                )}
-              </Button>
-              {generatedImage && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setGeneratedImage(null)
-                    setImagePrompt("")
-                  }}
-                >
-                  <X className="w-4 h-4 mr-2" />
-                  Clear
-                </Button>
-              )}
-            </div>
-
-            <div className="text-xs text-muted-foreground space-y-1">
-              <p>💡 <strong>Tips:</strong></p>
-              <ul className="list-disc list-inside ml-2 space-y-1">
-                <li>Be specific about style, colors, and mood</li>
-                <li>Mention composition (close-up, wide shot, etc.)</li>
-                <li>Add artistic styles (realistic, anime, oil painting, etc.)</li>
-              </ul>
             </div>
           </div>
         </DialogContent>
