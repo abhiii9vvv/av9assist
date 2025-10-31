@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
-import { Send, ArrowLeft, Mic, AlertCircle, History as HistoryIcon, Trash2, ChevronDown, StopCircle, Plus, Star, X, Bold, Italic, Code, Keyboard, BarChart, MessageSquare, Search, HelpCircle, Lock, Database, Shield, Sparkles, Image as ImageIcon, Settings, Wand2, Volume2, Palette } from "lucide-react"
+import { Send, ArrowLeft, Mic, AlertCircle, History as HistoryIcon, Trash2, ChevronDown, StopCircle, Plus, Star, X, Bold, Italic, Code, Keyboard, BarChart, MessageSquare, Search, HelpCircle, Lock, Database, Shield, Sparkles, Image as ImageIcon, Settings, Wand2, Volume2, Palette, Paperclip } from "lucide-react"
 import { sendMessage, ApiError } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -61,6 +61,9 @@ export default function ChatPage() {
   const fileInputRef = useRef(null)
   const [showSettings, setShowSettings] = useState(false)
   const [selectedProvider, setSelectedProvider] = useState("auto") // auto, gemini, sambanova, openrouter
+  const [showAttachMenu, setShowAttachMenu] = useState(false)
+  const [imageMode, setImageMode] = useState(false) // Toggle between text and image generation mode
+  const [generatingImage, setGeneratingImage] = useState(false)
 
   // Check for email on mount and redirect if missing
   useEffect(() => {
@@ -257,6 +260,20 @@ export default function ChatPage() {
       saveConversationMessages(conversationId, messages)
     }
   }, [messages, conversationId])
+
+  // Close attachment menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showAttachMenu && !event.target.closest('.relative')) {
+        setShowAttachMenu(false)
+      }
+    }
+
+    if (showAttachMenu) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [showAttachMenu])
 
   const handleRegenerate = async (message) => {
     if (isTyping || sendingRef.current) return
@@ -730,6 +747,77 @@ export default function ChatPage() {
     setImagePreview(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
+    }
+  }
+
+  const handleGenerateImage = async () => {
+    if (!imagePrompt.trim() || generatingImage) return
+  // Generate image using Pollinations.AI in normal chat flow
+  const handleGenerateImage = async () => {
+    if (!inputValue.trim() || generatingImage) return
+
+    const prompt = inputValue.trim()
+    setGeneratingImage(true)
+    setInputValue("") // Clear input immediately
+    setError("")
+
+    // Add user message with prompt
+    const userMessage = {
+      id: Date.now().toString(),
+      content: `🎨 Generate image: "${prompt}"`,
+      sender: "user",
+      timestamp: new Date(),
+    }
+    setMessages((prev) => [...prev, userMessage])
+
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: prompt,
+          width: 1024,
+          height: 1024,
+          seed: Date.now(),
+          model: 'flux',
+          nologo: true,
+          enhance: false
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate image')
+      }
+
+      // Add AI response with generated image
+      const imageMessage = {
+        id: (Date.now() + 1).toString(),
+        content: `Here's your generated image:`,
+        sender: "ai",
+        timestamp: new Date(),
+        image: data.imageUrl,
+      }
+      
+      setMessages((prev) => [...prev, imageMessage])
+      setImageMode(false) // Switch back to text mode
+      
+    } catch (error) {
+      console.error('Image generation error:', error)
+      
+      // Add error message to chat
+      const errorMessage = {
+        id: (Date.now() + 1).toString(),
+        content: `Sorry, I couldn't generate the image. Error: ${error.message}`,
+        sender: "ai",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setGeneratingImage(false)
     }
   }
 
@@ -1519,6 +1607,60 @@ export default function ChatPage() {
                     className="hidden"
                     aria-label="Upload image"
                   />
+                  
+                  {/* ChatGPT-style Attachment Button (Left Side) */}
+                  <div className="relative">
+                    <Button
+                      onClick={() => setShowAttachMenu(!showAttachMenu)}
+                      variant="ghost"
+                      size="icon"
+                      className="min-w-[40px] min-h-[40px] rounded-full hover:bg-muted transition-colors shrink-0"
+                      title="Attach or generate"
+                      aria-label="Attach menu"
+                    >
+                      <Paperclip className="w-5 h-5" />
+                    </Button>
+                    
+                    {/* Attachment Menu Popup */}
+                    {showAttachMenu && (
+                      <div className="absolute bottom-full left-0 mb-2 bg-popover border border-border rounded-lg shadow-lg p-2 w-48 z-50">
+                        <button
+                          onClick={() => {
+                            fileInputRef.current?.click()
+                            setShowAttachMenu(false)
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors text-left"
+                        >
+                          <ImageIcon className="w-4 h-4 text-blue-600" />
+                          <div>
+                            <p className="text-sm font-medium">Upload image</p>
+                            <p className="text-xs text-muted-foreground">Analyze with AI</p>
+                          </div>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setImageMode(!imageMode)
+                            setShowAttachMenu(false)
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent transition-colors text-left",
+                            imageMode && "bg-accent"
+                          )}
+                        >
+                          <Wand2 className={cn("w-4 h-4", imageMode ? "text-purple-600" : "text-purple-500")} />
+                          <div>
+                            <p className="text-sm font-medium">
+                              {imageMode ? "✓ Image mode" : "Generate image"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {imageMode ? "Active" : "Create with AI"}
+                            </p>
+                          </div>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
                   <div className="flex-1 min-w-0">
                     <Textarea
                       ref={inputRef}
@@ -1527,10 +1669,12 @@ export default function ChatPage() {
                       onKeyDown={handleKeyPress}
                       onFocus={() => setIsInputFocused(true)}
                       onBlur={() => setIsInputFocused(false)}
-                      placeholder="Type your message..."
-                      className={`min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border bg-background border-border focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none transition-colors duration-200 ${
-                        inputError ? "border-red-500 focus-visible:ring-red-500" : ""
-                      }`}
+                      placeholder={imageMode ? "Describe the image you want to create..." : "Type your message..."}
+                      className={cn(
+                        "min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border bg-background border-border focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none transition-colors duration-200",
+                        inputError && "border-red-500 focus-visible:ring-red-500",
+                        imageMode && "border-purple-500 focus-visible:ring-purple-500"
+                      )}
                       disabled={false}
                       aria-label="Type your message"
                       aria-describedby={inputError ? "input-error" : undefined}
@@ -1539,36 +1683,36 @@ export default function ChatPage() {
                     {inputError && (
                       <p id="input-error" className="text-xs text-red-500 mt-1" role="alert" aria-live="polite">{inputError}</p>
                     )}
+                    {imageMode && !inputError && (
+                      <p className="text-xs text-purple-600 mt-1 flex items-center gap-1">
+                        <Wand2 className="w-3 h-3" />
+                        Image generation mode active
+                      </p>
+                    )}
                   </div>
-                  {inputValue.trim() && (
-                    <ScaleTransition>
-                      <Button
-                        onClick={() => {
-                          setInputValue("")
-                        }}
-                        variant="outline"
-                        size="icon"
-                        className="min-w-[36px] min-h-[36px] transition-colors duration-200 shrink-0 bg-background hover:bg-muted border-border"
-                        title="Clear draft"
-                        aria-label="Clear message draft"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </ScaleTransition>
-                  )}
+                  
                   <ScaleTransition>
                     <Button
-                      onClick={handleSendMessage}
-                      disabled={(!inputValue.trim() && !selectedImage) || isTyping || inputError}
+                      onClick={imageMode ? handleGenerateImage : handleSendMessage}
+                      disabled={!inputValue.trim() || (imageMode ? generatingImage : isTyping) || inputError}
                       size="icon"
                       className={cn(
                         "min-w-[44px] min-h-[44px] transition-all duration-300 shrink-0",
-                        (inputValue.trim() || selectedImage) && !isTyping && !inputError && "animate-pulse hover:animate-none hover:scale-105 shadow-lg"
+                        imageMode && "bg-purple-600 hover:bg-purple-700",
+                        inputValue.trim() && !(imageMode ? generatingImage : isTyping) && !inputError && "animate-pulse hover:animate-none hover:scale-105 shadow-lg"
                       )}
-                      aria-label="Send message"
-                      aria-disabled={(!inputValue.trim() && !selectedImage) || isTyping || inputError}
+                      aria-label={imageMode ? "Generate image" : "Send message"}
+                      aria-disabled={!inputValue.trim() || (imageMode ? generatingImage : isTyping) || inputError}
                     >
-                      <Send className="w-4 h-4" />
+                      {imageMode ? (
+                        generatingImage ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Wand2 className="w-4 h-4" />
+                        )
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
                     </Button>
                   </ScaleTransition>
                 </div>
