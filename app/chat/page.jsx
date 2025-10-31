@@ -1741,19 +1741,20 @@ export default function ChatPage() {
                     
                     {/* Attachment Menu Popup */}
                     {showAttachMenu && (
-                      <div className="absolute bottom-full left-0 mb-2 bg-card border border-border rounded-lg shadow-lg p-1 w-48 z-[100]">
+                      <div className="absolute bottom-full left-0 mb-2 bg-background/95 backdrop-blur-xl border border-border rounded-lg shadow-xl p-2 w-52 z-[100]">
                         <button
                           onClick={() => {
                             fileInputRef.current?.click()
                             setShowAttachMenu(false)
                           }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-md hover:bg-accent/80 transition-colors text-left"
                         >
-                          <ImageIcon className="w-4 h-4 text-blue-600" />
-                          <div>
-                            <p className="text-sm font-medium">Upload image</p>
+                          <ImageIcon className="w-5 h-5 text-blue-600 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">Upload image</p>
                           </div>
                         </button>
+                        <div className="h-px bg-border my-1" />
                         <button
                           onClick={() => {
                             setIsImageMode(true)
@@ -1768,11 +1769,11 @@ export default function ChatPage() {
                               try { inputRef.current?.focus() } catch {}
                             }, 0)
                           }}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md hover:bg-accent transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-3 py-3 rounded-md hover:bg-accent/80 transition-colors text-left"
                         >
-                          <Wand2 className="w-4 h-4 text-purple-600" />
-                          <div>
-                            <p className="text-sm font-medium">Generate image</p>
+                          <Wand2 className="w-5 h-5 text-purple-600 shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">Generate image</p>
                           </div>
                         </button>
                       </div>
