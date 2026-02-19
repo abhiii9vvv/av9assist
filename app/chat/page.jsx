@@ -2,22 +2,21 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { StaggerContainer, StaggerItem, FadeTransition, ScaleTransition } from "@/components/page-transition"
-import { Send, ArrowLeft, Mic, AlertCircle, History as HistoryIcon, Trash2, ChevronDown, StopCircle, Plus, Star, X, Bold, Italic, Code, Keyboard, BarChart, MessageSquare, Search, HelpCircle, Lock, Database, Shield, Sparkles, Image as ImageIcon, Settings, Wand2, Volume2, Palette, Paperclip } from "lucide-react"
+import { FadeTransition, ScaleTransition } from "@/components/page-transition"
+import { AlertCircle, ChevronDown } from "lucide-react"
 import { sendMessage, ApiError } from "@/lib/api"
-import { cn } from "@/lib/utils"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useRenderTime } from "@/components/performance-monitor"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { ChatMessage } from "@/components/chat-message"
-import { TypingIndicator } from "@/components/typing-indicator"
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter, DrawerClose } from "@/components/ui/drawer"
+import { ChatHeader } from "./components/chat-header"
+import { PrivacyNoticeDialog } from "./components/privacy-notice-dialog"
+import { ChatHistoryDrawer } from "./components/chat-history-drawer"
+import { KeyboardShortcutsDialog } from "./components/keyboard-shortcuts-dialog"
+import { AnalyticsDialog } from "./components/analytics-dialog"
+import { HelpDialog } from "./components/help-dialog"
+import { SettingsDialog } from "./components/settings-dialog"
+import { ChatMessageList } from "./components/chat-message-list"
+import { ChatInputArea } from "./components/chat-input-area"
 
 export default function ChatPage() {
   // Performance monitoring
@@ -40,13 +39,10 @@ export default function ChatPage() {
   const [statusMessage, setStatusMessage] = useState("")
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
-  const [showFormattingToolbar, setShowFormattingToolbar] = useState(false)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
   const [editingContent, setEditingContent] = useState("")
   const [inputError, setInputError] = useState("")
-  const [isInputFocused, setIsInputFocused] = useState(false)
-  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
   const streamTimersRef = useRef({})
@@ -134,27 +130,8 @@ export default function ChatPage() {
       }
     }
     
-    // Show welcome message only if no conversation was restored
-    if (storedEmail) {
-      const welcomeMessage = {
-        id: "welcome",
-        content: `Hello! I'm av9Assist, your AI-powered assistant. How can I help you today?`,
-        sender: "ai",
-        timestamp: new Date(),
-      }
-      setMessages([welcomeMessage])
-      setTimeout(() => scrollToBottom("auto"), 80)
-    } else {
-      // Generic welcome message
-      const welcomeMessage = {
-        id: "welcome",
-        content: "Hello! I'm av9Assist, your AI-powered assistant. How can I help you today?",
-        sender: "ai",
-        timestamp: new Date(),
-      }
-      setMessages([welcomeMessage])
-      setTimeout(() => scrollToBottom("auto"), 80)
-    }
+    // Start with an empty chat when no conversation is restored
+    setMessages([])
   }, [])
 
   // Periodic check to ensure email is still present (prevents localStorage clearing during session)
@@ -180,18 +157,11 @@ export default function ChatPage() {
     }
   }, [])
 
-  // Handle privacy notice acceptance with celebration animation
+  // Handle privacy notice acceptance
   const handlePrivacyNoticeAccept = () => {
     try {
-      // Show welcome animation
-      setShowWelcomeAnimation(true)
-      
-      // Wait for animation, then close dialog
-      setTimeout(() => {
-        localStorage.setItem("av9assist_privacy_notice_seen", "true")
-        setShowPrivacyNotice(false)
-        setShowWelcomeAnimation(false)
-      }, 2000) // 2 seconds animation
+      localStorage.setItem("av9assist_privacy_notice_seen", "true")
+      setShowPrivacyNotice(false)
     } catch (e) {
       console.warn("Failed to save privacy notice status", e)
       setShowPrivacyNotice(false)
@@ -629,14 +599,7 @@ export default function ChatPage() {
       saveConversationList(next)
       if (conversationId === id) {
         setConversationId("")
-        // Reset to welcome
-        const welcomeMessage = {
-          id: "welcome",
-          content: "Hello! I'm av9Assist, your AI-powered assistant. How can I help you today?",
-          sender: "ai",
-          timestamp: new Date(),
-        }
-        setMessages([welcomeMessage])
+        setMessages([])
       }
     } catch (e) {
       console.warn("Failed to delete conversation", e)
@@ -678,6 +641,36 @@ export default function ChatPage() {
     }
   }, [conversationId])
 
+
+  const handleAttachMenuToggle = () => setShowAttachMenu((prev) => !prev)
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click()
+    setShowAttachMenu(false)
+  }
+
+  const handleEnableImageMode = () => {
+    setIsImageMode(true)
+    setShowAttachMenu(false)
+    setSelectedImage(null)
+    setImagePreview(null)
+    setStatusMessage("Describe the image you'd like me to create.")
+    trackEvent('image_mode_enabled', {
+      conversationId: conversationId || null,
+    })
+    setTimeout(() => {
+      try { inputRef.current?.focus() } catch {}
+    }, 0)
+  }
+
+  const handleExitImageMode = () => {
+    setIsImageMode(false)
+    setStatusMessage("")
+    trackEvent('image_mode_cancelled', {
+      conversationId: conversationId || null,
+    })
+  }
+
   const startNewChat = () => {
     trackEvent('conversation_started', { previousConversationId: conversationId })
     
@@ -695,13 +688,7 @@ export default function ChatPage() {
     setSelectedImage(null)
     setImagePreview(null)
     setIsImageMode(false)
-    const welcomeMessage = {
-      id: "welcome",
-      content: "Hello! I'm av9Assist, your AI-powered assistant. How can I help you today?",
-      sender: "ai",
-      timestamp: new Date(),
-    }
-    setMessages([welcomeMessage])
+    setMessages([])
     setHistoryOpen(false)
   setTimeout(() => scrollToBottom(), 50)
   }
@@ -1325,10 +1312,7 @@ export default function ChatPage() {
   if (!userEmail) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
+        <p className="text-muted-foreground">Checking authentication...</p>
       </div>
     )
   }
@@ -1338,117 +1322,12 @@ export default function ChatPage() {
 
   return (
     <div className="min-h-[100dvh] bg-background flex flex-col overflow-hidden">
-      {/* Welcome Animation Overlay */}
-      {showWelcomeAnimation && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-xl">
-          <div className="relative flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-500">
-            {/* Animated Sparkle Circle */}
-            <div className="relative w-32 h-32">
-              {/* Outer rotating ring */}
-              <div className="absolute inset-0 rounded-full border-4 border-primary/30 border-t-primary animate-spin" 
-                   style={{animationDuration: '1.5s'}}></div>
-              
-              {/* Middle pulsing ring */}
-              <div className="absolute inset-3 rounded-full border-4 border-blue-500/20 border-b-blue-500 animate-spin" 
-                   style={{animationDuration: '2s', animationDirection: 'reverse'}}></div>
-              
-              {/* Inner glow */}
-              <div className="absolute inset-6 rounded-full bg-gradient-to-br from-primary/40 to-blue-500/40 animate-pulse blur-xl"></div>
-              
-              {/* Center sparkle icon */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Sparkles className="w-12 h-12 text-primary animate-pulse" />
-              </div>
-            </div>
-            
-            {/* Welcome text with typing effect */}
-            <div className="text-center space-y-2 animate-in slide-in-from-bottom-4 duration-700 delay-300">
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-primary via-blue-500 to-primary bg-clip-text text-transparent animate-pulse">
-                Welcome to av9Assist! 🎉
-              </h2>
-              <p className="text-muted-foreground text-sm animate-in fade-in duration-500 delay-500">
-                Getting everything ready for you...
-              </p>
-            </div>
-            
-            {/* Floating particles */}
-            <div className="absolute inset-0 pointer-events-none">
-              {[...Array(12)].map((_, i) => (
-                <div
-                  key={i}
-                  className="absolute w-2 h-2 rounded-full bg-primary/40 animate-ping"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    animationDelay: `${Math.random() * 2}s`,
-                    animationDuration: `${2 + Math.random() * 2}s`,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Privacy Notice Dialog */}
-      <Dialog open={showPrivacyNotice} onOpenChange={setShowPrivacyNotice}>
-        <DialogContent className="sm:max-w-md bg-background/95 backdrop-blur-xl border-2 border-primary/20 shadow-2xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              Privacy & Data Safety
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-3 text-sm text-muted-foreground">
-              <p className="flex items-start gap-3 p-3 rounded-lg bg-card/50 backdrop-blur-sm border border-primary/10">
-                <Lock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-foreground">Your privacy matters.</strong> All your conversations and data are stored locally in your browser.
-                </span>
-              </p>
-              <p className="flex items-start gap-3 p-3 rounded-lg bg-card/50 backdrop-blur-sm border border-primary/10">
-                <Database className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-foreground">Local storage only.</strong> We don't have access to your messages or personal information.
-                </span>
-              </p>
-              <p className="flex items-start gap-3 p-3 rounded-lg bg-card/50 backdrop-blur-sm border border-primary/10">
-                <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-foreground">Complete control.</strong> You can clear your data anytime from your browser settings.
-                </span>
-              </p>
-              <p className="flex items-start gap-3 p-3 rounded-lg bg-card/50 backdrop-blur-sm border border-primary/10">
-                <Sparkles className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                <span>
-                  <strong className="text-foreground">Secure & private.</strong> Your conversations stay on your device and are never shared with us.
-                </span>
-              </p>
-            </div>
-            <div className="pt-2">
-              <Button 
-                onClick={handlePrivacyNoticeAccept}
-                className="w-full relative overflow-hidden group"
-                size="lg"
-                disabled={showWelcomeAnimation}
-              >
-                {showWelcomeAnimation ? (
-                  <span className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                    Starting...
-                  </span>
-                ) : (
-                  <>
-                    <span className="relative z-10">Got it, Start Chatting</span>
-                    <Sparkles className="w-4 h-4 ml-2 group-hover:animate-pulse" />
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PrivacyNoticeDialog
+        show={showPrivacyNotice}
+        onOpenChange={setShowPrivacyNotice}
+        onAccept={handlePrivacyNoticeAccept}
+        isStarting={false}
+      />
 
       {/* Skip links for accessibility */}
       <a 
@@ -1473,59 +1352,12 @@ export default function ChatPage() {
       >
         {statusMessage}
       </div>
-      {/* Header - Sticky with slide animation */}
-      <header className="border-b bg-gradient-to-r from-background via-card/95 to-background backdrop-blur-md sticky top-0 z-50 shadow-lg shrink-0">
-        <div className="container mx-auto px-1 sm:px-2 py-2 sm:py-3 flex items-center justify-between max-w-6xl">
-          <div className="flex items-center gap-1 sm:gap-2 min-w-0">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push("/")}
-              className="hover:scale-110 transition-transform shrink-0 min-w-[44px] min-h-[44px]"
-            >
-              <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
-            </Button>
-            <div className="flex items-center gap-1 min-w-0">
-              {/* Hide AI logo to save space */}
-              <div className="min-w-0">
-                <h1 className="text-xs sm:text-sm font-semibold truncate">av9Assist</h1>
-                <p className="text-xs text-muted-foreground hidden">AI Assistant</p>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={startNewChat}
-              className="min-w-[44px] min-h-[44px] flex items-center gap-1.5 px-3"
-              title="New Chat"
-            >
-              <Plus className="w-4 h-4" />
-              <span className="text-xs sm:text-sm font-medium">New Chat</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setHistoryOpen(true)}
-              className="min-w-[44px] min-h-[44px]"
-              title="History"
-            >
-              <HistoryIcon className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setShowSettings(true)}
-              className="min-w-[44px] min-h-[44px]"
-              title="Settings"
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+      <ChatHeader
+        onBack={() => router.push("/")}
+        onNewChat={startNewChat}
+        onOpenHistory={() => setHistoryOpen(true)}
+        onOpenSettings={() => setShowSettings(true)}
+      />
 
       {/* Error Alert */}
       {error && (
@@ -1542,288 +1374,42 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Chat Messages Area */}
-      <main className="flex-1 min-h-0 overflow-hidden" role="main" aria-label="Chat messages" id="main-content">
-        <div className="h-full container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-6xl pb-20 sm:pb-24">
-          <div 
-            id="chat-scroll-area" 
-            className="h-full space-y-2 sm:space-y-3 pb-2 overflow-y-auto overflow-x-hidden scrollbar-thin scrollbar-thumb-muted-foreground/20 scrollbar-track-transparent"
-            role="log"
-            aria-label="Chat conversation"
-            aria-live="polite"
-            aria-atomic="false"
-          >
-            <div className="space-y-2 sm:space-y-3">
-              <StaggerContainer>
-                {isConversationLoading ? (
-                  // Show animated loader when loading conversation
-                  <div className="flex items-center justify-center min-h-[300px]">
-                    <div className="text-center space-y-4">
-                      {/* Animated Spinner */}
-                      <div className="relative mx-auto w-16 h-16">
-                        <div className="absolute inset-0 border-4 border-primary/30 border-t-primary rounded-full animate-spin" 
-                             style={{animationDuration: '1s'}}></div>
-                        <div className="absolute inset-2 border-4 border-blue-500/20 border-b-blue-500 rounded-full animate-spin" 
-                             style={{animationDuration: '1.5s', animationDirection: 'reverse'}}></div>
-                        <div className="absolute inset-0 m-auto w-4 h-4 bg-gradient-to-br from-primary to-blue-500 rounded-full animate-pulse"></div>
-                      </div>
-                      
-                      {/* Loading Text */}
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-foreground animate-pulse">
-                          Loading conversation...
-                        </p>
-                        <div className="flex items-center justify-center gap-1">
-                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0s'}}></span>
-                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
-                          <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  messages.map((message, index) => {
-                    if (editingMessageId === message.id) {
-                      return (
-                        <StaggerItem key={message.id}>
-                          <FadeTransition className="flex gap-1 sm:gap-2 flex-row-reverse px-0 sm:px-0">
-                            <div className="flex flex-col gap-2 min-w-0 items-end max-w-[96%] xs:max-w-[92%] sm:max-w-[90%] md:max-w-[86%] lg:max-w-[82%] xl:max-w-[78%]">{/* Continue with existing structure */}
-                              <ScaleTransition>
-                                <Card className="px-3 sm:px-5 py-3 sm:py-4 border-0 shadow-xl bg-primary text-primary-foreground rounded-2xl rounded-br-md min-w-0 w-fit">
-                                  <Textarea
-                                    value={editingContent}
-                                    onChange={(e) => setEditingContent(e.target.value)}
-                                    className="min-h-[60px] bg-transparent border-none text-primary-foreground placeholder:text-primary-foreground/50 resize-none text-sm sm:text-base transition-all duration-300 focus:scale-105"
-                                    placeholder="Edit your message..."
-                                    autoFocus
-                                  />
-                                  <div className="flex gap-2 sm:gap-3 mt-3">
-                                    <ScaleTransition>
-                                      <Button
-                                        size="sm"
-                                    onClick={handleSaveEdit}
-                                    disabled={!editingContent.trim()}
-                                    className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-medium transition-all duration-300"
-                                  >
-                                    Save Changes
-                                  </Button>
-                                </ScaleTransition>
-                                <ScaleTransition>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={handleCancelEdit}
-                                    className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10 transition-all duration-300"
-                                  >
-                                  Cancel
-                                </Button>
-                              </ScaleTransition>
-                            </div>
-                          </Card>
-                        </ScaleTransition>
-                      </div>
-                    </FadeTransition>
-                  </StaggerItem>
-                )
-              }
+      <ChatMessageList
+        isConversationLoading={isConversationLoading}
+        messages={messages}
+        editingMessageId={editingMessageId}
+        editingContent={editingContent}
+        onEditContentChange={setEditingContent}
+        onSaveEdit={handleSaveEdit}
+        onCancelEdit={handleCancelEdit}
+        onRegenerate={handleRegenerate}
+        onEdit={handleEdit}
+        isTyping={isTyping}
+        isSending={sendingRef.current}
+        messagesEndRef={messagesEndRef}
+      />
 
-              return (
-                <StaggerItem key={message.id}>
-                  <FadeTransition>
-                    <ChatMessage
-                      message={message}
-                      onRegenerate={handleRegenerate}
-                      onEdit={handleEdit}
-                      isLast={message.sender === "ai" && index === messages.length - 1}
-                      isTyping={isTyping && message.sender === "ai" && index === messages.length - 1}
-                      showTimestamp={true}
-                      showActions={true}
-                      status={
-                        message.sender === "user" && index === messages.length - 1 && sendingRef.current ? "sending" :
-                        message.sender === "ai" && index === messages.length - 1 && isTyping ? "generating" :
-                        null
-                      }
-                    />
-                  </FadeTransition>
-                </StaggerItem>
-              )
-            })
-                )}
-              </StaggerContainer>
-          {isTyping && <TypingIndicator />}
-          <div ref={messagesEndRef} />
-            </div>
-          </div>
-        </div>
-      </main>
-
-        {/* Input Area - Fixed at bottom */}
-        <div className={cn(
-          "fixed bottom-0 left-0 right-0 border-t bg-card/95 backdrop-blur-sm z-30 pb-safe shadow-inner transition-all duration-200",
-          isMobileKeyboardVisible && "pb-2"
-        )}>
-          <div className="container mx-auto px-1 sm:px-2 py-1 sm:py-2 max-w-6xl">
-            <FadeTransition>
-              <Card
-                className={cn(
-                  "p-1 sm:p-2 bg-card/50 backdrop-blur-sm border border-border shadow-lg transition-all duration-200",
-                  isImageMode && "border-purple-500/60 shadow-[0_0_25px_-12px_rgba(168,85,247,0.9)]"
-                )}
-                role="region"
-                aria-label="Message input area"
-              >
-                {/* Image preview */}
-                {imagePreview && (
-                  <div className="mb-2 relative inline-block">
-                    <div className="relative group">
-                      <img 
-                        src={imagePreview} 
-                        alt="Selected" 
-                        className="max-h-32 rounded-lg border border-border shadow-md"
-                      />
-                      <Button
-                        onClick={handleRemoveImage}
-                        variant="destructive"
-                        size="icon"
-                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                        aria-label="Remove image"
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                {isImageMode && (
-                  <div className="mb-2 flex items-center justify-between gap-2 rounded-md border border-purple-300 dark:border-purple-700 bg-purple-50/80 dark:bg-purple-950/20 px-3 py-2 text-sm">
-                    <div className="flex items-center gap-2 text-purple-700 dark:text-purple-200">
-                      <Wand2 className="w-4 h-4" />
-                      <span>Create Image Mode — describe what you want to see.</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setIsImageMode(false)
-                        setStatusMessage("")
-                        trackEvent('image_mode_cancelled', {
-                          conversationId: conversationId || null,
-                        })
-                      }}
-                    >
-                      <X className="w-3 h-3 mr-1" />
-                      Exit
-                    </Button>
-                  </div>
-                )}
-                <div className="flex gap-1 sm:gap-2 items-end" role="group" aria-label="Message composition">
-                  {/* Hidden file input */}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageSelect}
-                    className="hidden"
-                    aria-label="Upload image"
-                  />
-                  
-                  {/* ChatGPT-style Attachment Button (Left Side) */}
-                  <div className="relative">
-                    <Button
-                      onClick={() => setShowAttachMenu(!showAttachMenu)}
-                      variant="ghost"
-                      size="icon"
-                      className="min-w-[40px] min-h-[40px] rounded-full hover:bg-muted transition-colors shrink-0"
-                      title="Attach or generate"
-                      aria-label="Attach menu"
-                    >
-                      <Paperclip className="w-5 h-5" />
-                    </Button>
-                    
-                    {/* Attachment Menu Popup */}
-                    {showAttachMenu && (
-                      <div className="absolute bottom-full left-0 mb-2 bg-background/95 backdrop-blur-xl border border-border rounded-lg shadow-xl p-2 w-52 z-[100]">
-                        <button
-                          onClick={() => {
-                            fileInputRef.current?.click()
-                            setShowAttachMenu(false)
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-3 rounded-md hover:bg-accent/80 transition-colors text-left"
-                        >
-                          <ImageIcon className="w-5 h-5 text-blue-600 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">Upload image</p>
-                          </div>
-                        </button>
-                        <div className="h-px bg-border my-1" />
-                        <button
-                          onClick={() => {
-                            setIsImageMode(true)
-                            setShowAttachMenu(false)
-                            setSelectedImage(null)
-                            setImagePreview(null)
-                            setStatusMessage("Describe the image you'd like me to create.")
-                            trackEvent('image_mode_enabled', {
-                              conversationId: conversationId || null,
-                            })
-                            setTimeout(() => {
-                              try { inputRef.current?.focus() } catch {}
-                            }, 0)
-                          }}
-                          className="w-full flex items-center gap-3 px-3 py-3 rounded-md hover:bg-accent/80 transition-colors text-left"
-                        >
-                          <Wand2 className="w-5 h-5 text-purple-600 shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">Generate image</p>
-                          </div>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <Textarea
-                      ref={inputRef}
-                      value={inputValue}
-                      onChange={handleInputChange}
-                      onKeyDown={handleKeyPress}
-                      onFocus={() => setIsInputFocused(true)}
-                      onBlur={() => setIsInputFocused(false)}
-                      placeholder={isImageMode ? "Describe the image you'd like me to create..." : "Type your message..."}
-                      className={`min-h-[36px] sm:min-h-[40px] max-h-[100px] sm:max-h-[120px] resize-none border bg-background border-border focus-visible:ring-1 focus-visible:ring-primary text-sm sm:text-base shadow-none transition-colors duration-200 ${
-                        inputError ? "border-red-500 focus-visible:ring-red-500" : ""
-                      } ${
-                        isImageMode && !inputError ? "border-purple-400 focus-visible:ring-purple-500" : ""
-                      }`}
-                      disabled={false}
-                      aria-label={isImageMode ? "Describe the image you want me to create" : "Type your message"}
-                      aria-describedby={inputError ? "input-error" : undefined}
-                      id="message-input"
-                    />
-                    {inputError && (
-                      <p id="input-error" className="text-xs text-red-500 mt-1" role="alert" aria-live="polite">{inputError}</p>
-                    )}
-                  </div>
-                  
-                  <ScaleTransition>
-                    <Button
-                      onClick={handleSendMessage}
-                      disabled={!canSend || isTyping || !!inputError}
-                      size="icon"
-                      className={cn(
-                        "min-w-[44px] min-h-[44px] transition-all duration-300 shrink-0",
-                        canSend && !isTyping && !inputError && "animate-pulse hover:animate-none hover:scale-105 shadow-lg"
-                      )}
-                      aria-label={isImageMode ? "Generate image" : "Send message"}
-                      aria-disabled={!canSend || isTyping || !!inputError}
-                    >
-                      <Send className="w-4 h-4" />
-                    </Button>
-                  </ScaleTransition>
-                </div>
-              </Card>
-            </FadeTransition>
-          </div>
-        </div>
+      <ChatInputArea
+        isMobileKeyboardVisible={isMobileKeyboardVisible}
+        isImageMode={isImageMode}
+        imagePreview={imagePreview}
+        onRemoveImage={handleRemoveImage}
+        onExitImageMode={handleExitImageMode}
+        showAttachMenu={showAttachMenu}
+        onToggleAttachMenu={handleAttachMenuToggle}
+        onUploadClick={handleUploadClick}
+        onEnableImageMode={handleEnableImageMode}
+        fileInputRef={fileInputRef}
+        onImageSelect={handleImageSelect}
+        inputRef={inputRef}
+        inputValue={inputValue}
+        onInputChange={handleInputChange}
+        onKeyPress={handleKeyPress}
+        inputError={inputError}
+        canSend={canSend}
+        isTyping={isTyping}
+        onSendMessage={handleSendMessage}
+      />
 
       {/* Scroll to latest button - adjusted for fixed input */}
       {showScrollToBottom && (
@@ -1848,465 +1434,47 @@ export default function ChatPage() {
         </FadeTransition>
       )}
 
-      {/* History Drawer */}
-      <Drawer open={historyOpen} onOpenChange={setHistoryOpen}>
-        <DrawerContent className="max-h-[85vh] bg-gradient-to-b from-background via-card/80 to-background">
-          <DrawerHeader className="border-b bg-gradient-to-r from-card/90 via-card to-card/90 backdrop-blur-sm shadow-sm">
-            <DrawerTitle className="text-lg font-bold">History</DrawerTitle>
-            {conversations.length > 0 && (
-              <div className="px-1 space-y-2">
-                <Input
-                  placeholder="Search conversations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full"
-                />
-                <Button
-                  variant={showOnlyFavorites ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
-                  className="w-full"
-                >
-                  <Star className="w-4 h-4 mr-2" />
-                  {showOnlyFavorites ? "Show All" : "Show Favorites"}
-                </Button>
-              </div>
-            )}  
-          </DrawerHeader>
-          <div className="px-4 pb-2 overflow-y-auto bg-gradient-to-b from-card/20 via-card/10 to-transparent">
-            {isInitialLoading ? (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center space-y-6">
-                  {/* Animated Spinner */}
-                  <div className="relative mx-auto w-20 h-20">
-                    {/* Outer rotating ring */}
-                    <div className="absolute inset-0 border-4 border-primary/30 border-t-primary rounded-full animate-spin" 
-                         style={{animationDuration: '1s'}}></div>
-                    {/* Middle rotating ring (opposite direction) */}
-                    <div className="absolute inset-2 border-4 border-blue-500/20 border-b-blue-500 rounded-full animate-spin" 
-                         style={{animationDuration: '1.5s', animationDirection: 'reverse'}}></div>
-                    {/* Inner pulsing dot */}
-                    <div className="absolute inset-0 m-auto w-6 h-6 bg-gradient-to-br from-primary to-blue-500 rounded-full animate-pulse"></div>
-                  </div>
-                  
-                  {/* Loading Text */}
-                  <div className="space-y-2">
-                    <p className="text-lg font-semibold text-foreground animate-pulse">
-                      Loading your chats...
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Just a moment ✨
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : filteredConversations.length === 0 ? (
-              conversations.length === 0 ? (
-                <div className="text-center py-8 space-y-4">
-                  <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
-                    <MessageSquare className="w-8 h-8 text-primary" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">Welcome to av9Assist!</h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                      Start a conversation with our AI assistant. Ask questions, get help with tasks, or explore creative ideas.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2 justify-center max-w-md mx-auto">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setInputValue("Hello! Can you help me get started?")
-                        setHistoryOpen(false)
-                      }}
-                      className="text-xs"
-                    >
-                      Say Hello
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setInputValue("What can you help me with?")
-                        setHistoryOpen(false)
-                      }}
-                      className="text-xs"
-                    >
-                      ❓ What can you do?
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setInputValue("Tell me a fun fact")
-                        setHistoryOpen(false)
-                      }}
-                      className="text-xs"
-                    >
-                      Fun Fact
-                    </Button>
-                  </div>
-                </div>
-              ) : showOnlyFavorites ? (
-                <div className="text-center py-8 space-y-4">
-                  <div className="w-16 h-16 mx-auto bg-yellow-500/10 rounded-full flex items-center justify-center">
-                    <Star className="w-8 h-8 text-yellow-600" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">No favorite conversations</h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                      Star conversations you want to keep track of. They will appear here for quick access.
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowOnlyFavorites(false)}
-                    className="text-xs"
-                  >
-                    Show All Conversations
-                  </Button>
-                </div>
-              ) : searchQuery ? (
-                <div className="text-center py-8 space-y-4">
-                  <div className="w-16 h-16 mx-auto bg-muted/50 rounded-full flex items-center justify-center">
-                    <Search className="w-8 h-8 text-muted-foreground" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">No conversations found</h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                      Try adjusting your search terms or filters to find what you're looking for.
-                    </p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setSearchQuery("")
-                      setShowOnlyFavorites(false)
-                    }}
-                    className="text-xs"
-                  >
-                    Clear Search
-                  </Button>
-                </div>
-              ) : null
-            ) : (
-              <ul className="space-y-3">
-                {filteredConversations.map((c) => (
-                  <li key={c.id} className="group bg-gradient-to-br from-card via-card/95 to-card/90 hover:from-card hover:via-card hover:to-card/95 border border-border rounded-xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-primary/5 hover:scale-[1.02] backdrop-blur-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <button
-                        className="text-left flex-1 min-w-0 hover:opacity-80 transition-opacity"
-                        onClick={() => openConversation(c.id)}
-                      >
-                        <div className="font-bold line-clamp-1 text-sm mb-1.5 text-foreground group-hover:text-primary transition-colors">{c.title || "Conversation"}</div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>{new Date(c.updatedAt).toLocaleString()}</span>
-                        </div>
-                      </button>
-                      <div className="flex items-center gap-0.5 shrink-0">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => toggleFavorite(c.id)} 
-                          title={favorites.has(c.id) ? "Remove from favorites" : "Add to favorites"}
-                          className={`h-9 w-9 rounded-lg ${favorites.has(c.id) ? "text-yellow-500 hover:text-yellow-600 hover:bg-yellow-500/10" : "text-muted-foreground hover:text-foreground hover:bg-accent"} transition-all`}
-                        >
-                          <Star className={`w-4 h-4 ${favorites.has(c.id) ? "fill-current" : ""}`} />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => deleteConversation(c.id)} 
-                          title="Delete"
-                          className="h-9 w-9 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <DrawerFooter className="border-t bg-gradient-to-r from-card/60 via-card/80 to-card/60 backdrop-blur-sm">
-            <DrawerClose asChild>
-              <Button variant="secondary" className="w-full font-semibold">Close</Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+      <ChatHistoryDrawer
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        conversations={conversations}
+        filteredConversations={filteredConversations}
+        isInitialLoading={isInitialLoading}
+        showOnlyFavorites={showOnlyFavorites}
+        onToggleFavorites={() => setShowOnlyFavorites(!showOnlyFavorites)}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onOpenConversation={openConversation}
+        onDeleteConversation={deleteConversation}
+        onToggleFavorite={toggleFavorite}
+        isFavorite={(id) => favorites.has(id)}
+        onPromptPreset={(text) => {
+          setInputValue(text)
+          setHistoryOpen(false)
+        }}
+      />
 
-      {/* Keyboard Shortcuts Dialog */}
-      <Dialog open={showKeyboardShortcuts} onOpenChange={setShowKeyboardShortcuts}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Keyboard Shortcuts</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm">Focus input</span>
-              <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+K</kbd>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm">Show history</span>
-              <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+/</kbd>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm">Regenerate last response</span>
-              <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+R</kbd>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm">Clear chat</span>
-              <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+L</kbd>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm">Send message</span>
-              <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-sm">New line</span>
-              <kbd className="px-2 py-1 bg-muted rounded text-xs">Shift+Enter</kbd>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <KeyboardShortcutsDialog
+        open={showKeyboardShortcuts}
+        onOpenChange={setShowKeyboardShortcuts}
+      />
 
-      {/* Analytics Dialog */}
-      <Dialog open={showAnalytics} onOpenChange={setShowAnalytics}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Usage Analytics</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {(() => {
-              try {
-                const analytics = JSON.parse(localStorage.getItem('av9assist_analytics') || '[]')
-                const stats = analytics.reduce((acc, event) => {
-                  acc[event.event] = (acc[event.event] || 0) + 1
-                  return acc
-                }, {})
-                
-                return (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-2xl font-bold">{stats.conversation_started || 0}</div>
-                        <div className="text-sm text-muted-foreground">Conversations Started</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-2xl font-bold">{stats.message_sent || 0}</div>
-                        <div className="text-sm text-muted-foreground">Messages Sent</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-2xl font-bold">{stats.feedback_given || 0}</div>
-                        <div className="text-sm text-muted-foreground">Feedback Given</div>
-                      </div>
-                      <div className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className="text-2xl font-bold">{analytics.length}</div>
-                        <div className="text-sm text-muted-foreground">Total Events</div>
-                      </div>
-                    </div>
-                    <div className="text-xs text-muted-foreground text-center">
-                      Analytics are stored locally and help improve the app
-                    </div>
-                  </div>
-                )
-              } catch (e) {
-                return <div className="text-center text-muted-foreground">No analytics data available</div>
-              }
-            })()}
-          </div>
-        </DialogContent>
-      </Dialog>
+      <AnalyticsDialog
+        open={showAnalytics}
+        onOpenChange={setShowAnalytics}
+      />
 
-      {/* Help Dialog */}
-      <Dialog open={showHelp} onOpenChange={setShowHelp}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Help & Tips</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Getting Started</h3>
-              <div className="space-y-3 text-sm">
-                <p>
-                  Welcome to av9Assist! Here's how to make the most of your AI assistant:
-                </p>
-                <ul className="list-disc list-inside space-y-1 ml-4">
-                  <li>Type your message in the input field at the bottom</li>
-                  <li>Press Enter or click the send button to send your message</li>
-                  <li>Use the formatting buttons to add <strong>bold</strong>, <em>italic</em>, or <code>code</code> text</li>
-                  <li>Your conversations are automatically saved and can be accessed from the History panel</li>
-                </ul>
-              </div>
-            </div>
+      <HelpDialog
+        open={showHelp}
+        onOpenChange={setShowHelp}
+      />
 
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Keyboard Shortcuts</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <h4 className="font-medium mb-2">General</h4>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span>New Chat</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+K</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>History</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+/</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Regenerate</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+R</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Clear Chat</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+L</kbd>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <h4 className="font-medium mb-2">Formatting</h4>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span>Bold</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+B</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Italic</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+I</kbd>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Code</span>
-                      <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+`</kbd>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Features</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium">Conversations</h4>
-                    <p className="text-muted-foreground">Start new chats, browse history, and favorite important conversations.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Message Actions</h4>
-                    <p className="text-muted-foreground">Reply to messages, provide feedback, regenerate responses, and copy text.</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium">Quick Actions</h4>
-                    <p className="text-muted-foreground">Use keyboard shortcuts for faster interaction and productivity.</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Analytics</h4>
-                    <p className="text-muted-foreground">Track your usage patterns and conversation insights.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Tips</h3>
-              <div className="space-y-2 text-sm">
-                <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-blue-800 dark:text-blue-200">
-                    <strong>Pro tip:</strong> Use Shift+Enter for new lines in your messages. Press Enter alone to send.
-                  </p>
-                </div>
-                <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <p className="text-green-800 dark:text-green-200">
-                    <strong>Be specific:</strong> The more detailed your questions, the better the AI can help you.
-                  </p>
-                </div>
-                <div className="p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <p className="text-purple-800 dark:text-purple-200">
-                    🔄 <strong>Iterate:</strong> If you don't like a response, use the regenerate button or provide feedback.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Settings Dialog */}
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings className="w-5 h-5 text-primary" />
-              Chat Settings
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-6 py-4">
-            {/* AI Provider Selection */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <label className="text-sm font-medium">AI Provider</label>
-              </div>
-              <select
-                value={selectedProvider}
-                onChange={(e) => setSelectedProvider(e.target.value)}
-                className="w-full px-3 py-2 rounded-md border border-border bg-background"
-              >
-                <option value="auto">Auto (Fastest Response)</option>
-                <option value="gemini">Google Gemini (Vision Capable)</option>
-                <option value="sambanova">SambaNova (Fast & Free)</option>
-                <option value="openrouter">OpenRouter (Various Models)</option>
-              </select>
-              <p className="text-xs text-muted-foreground">
-                {selectedProvider === "auto" && "⚡ Automatically selects the fastest available provider"}
-                {selectedProvider === "gemini" && "🧠 Advanced AI with image understanding capabilities"}
-                {selectedProvider === "sambanova" && "🚀 High-speed responses with excellent quality"}
-                {selectedProvider === "openrouter" && "🔄 Access to multiple AI models"}
-              </p>
-            </div>
-
-            {/* Feature Highlights */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <label className="text-sm font-medium">Available Features</label>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="p-3 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                  <div className="flex items-center gap-2 mb-1">
-                    <ImageIcon className="w-3 h-3 text-purple-600" />
-                    <span className="text-xs font-medium text-purple-800 dark:text-purple-200">Image Upload</span>
-                  </div>
-                  <p className="text-xs text-purple-700 dark:text-purple-300">Analyze your images</p>
-                </div>
-                <div className="p-3 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="w-3 h-3 text-orange-600" />
-                    <span className="text-xs font-medium text-orange-800 dark:text-orange-200">Smart Chat</span>
-                  </div>
-                  <p className="text-xs text-orange-700 dark:text-orange-300">Context-aware AI</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Info Section */}
-            <div className="p-3 bg-muted/50 rounded-lg border border-border/50">
-              <p className="text-xs text-muted-foreground">
-                <strong>💡 Pro Tip:</strong> Use "Auto" mode for the best experience. The system will automatically choose the fastest provider based on availability and your request type.
-              </p>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <SettingsDialog
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        selectedProvider={selectedProvider}
+        onChangeProvider={setSelectedProvider}
+      />
     </div>
   )
 }

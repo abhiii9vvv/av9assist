@@ -1,7 +1,0 @@
-/* TEAM */
-Developer: av9Assist
-Site: https://av9assist.vercel.app
-Twitter: @
-
-/* THANKS */
-Thanks to Next.js and Vercel
